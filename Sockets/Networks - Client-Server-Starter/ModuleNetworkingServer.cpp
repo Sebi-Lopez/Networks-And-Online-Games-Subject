@@ -10,11 +10,41 @@
 bool ModuleNetworkingServer::start(int port)
 {
 	// TODO(jesus): TCP listen socket stuff
+
 	// - Create the listenSocket
+	listenSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+	int enable = 1;
+	if(setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, (const char*)&enable, sizeof(int)) == SOCKET_ERROR)
+	{
+		reportError("Set reuse address");
+	}
+
 	// - Set address reuse
+	sockaddr_in serverAddress; 
+	serverAddress.sin_family = AF_INET; 
+	serverAddress.sin_port = htons(port); 
+	serverAddress.sin_addr.S_un.S_addr = INADDR_ANY; // any local ip address
+
 	// - Bind the socket to a local interface
+	if (bind(listenSocket, (const struct sockaddr*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR)
+	{
+		reportError("Binding Server Socket");
+		return true;
+	}
+
 	// - Enter in listen mode
+	// The maximum length of the queue of pending connections. If set to SOMAXCONN, 
+	// the underlying service provider responsible for socket s will set the backlog to a 
+	// maximum reasonable value.
+	if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR)
+	{
+		reportError("Setting Server Socket to listen");
+		return true;
+	}
+
 	// - Add the listenSocket to the managed list of sockets using addSocket()
+	addSocket(listenSocket);
 
 	state = ServerState::Listening;
 

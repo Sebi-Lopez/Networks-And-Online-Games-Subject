@@ -1,6 +1,7 @@
 #include "Networks.h"
 #include "ModuleNetworking.h"
 
+#include <list>
 
 static uint8 NumModulesUsingWinsock = 0;
 
@@ -61,7 +62,29 @@ bool ModuleNetworking::preUpdate()
 	const uint32 incomingDataBufferSize = Kilobytes(1);
 	byte incomingDataBuffer[incomingDataBufferSize];
 
-	// TODO(jesus): select those sockets that have a read operation available
+	// TODO(jesus): select those sockets that have a read operation available ---
+
+	// new sockets set
+	fd_set readSet;
+	FD_ZERO(&readSet);
+
+	// fill the set with all sockets
+	for (std::vector<SOCKET>::iterator it = sockets.begin(); it != sockets.end(); ++it)
+	{
+		FD_SET((*it), &readSet);
+	}
+
+	timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 0;
+
+	// check for readability
+	int res = select(0, &readSet, nullptr, nullptr, &timeout);
+	if (res == SOCKET_ERROR)
+	{
+		reportError("selecting sockets for read using select");
+		return false;
+	}
 
 	// TODO(jesus): for those sockets selected, check wheter or not they are
 	// a listen socket or a standard socket and perform the corresponding
@@ -73,14 +96,61 @@ bool ModuleNetworking::preUpdate()
 	// On recv() success, communicate the incoming data received to the
 	// subclass (use the callback onSocketReceivedData()).
 
-	// TODO(jesus): handle disconnections. Remember that a socket has been
-	// disconnected from its remote end either when recv() returned 0,
-	// or when it generated some errors such as ECONNRESET.
-	// Communicate detected disconnections to the subclass using the callback
-	// onSocketDisconnected().
+	std::list<SOCKET> disconnectedSockets;
+
+	//for (std::vector<SOCKET>::iterator s = sockets.begin(); s != sockets.end(); ++s)
+	for (auto s : sockets) // for not making the addsockets function return the new vec iterator position, using auto instead
+	{
+		if (FD_ISSET(s, &readSet))
+		{
+			if (isListenSocket(s))
+			{
+				// accept stuff
+				sockaddr_in sacc;
+				int len = sizeof(sacc);
+
+				SOCKET newSocket = accept(s, (struct sockaddr*)&sacc, &len);
+				if (newSocket == INVALID_SOCKET)
+				{
+					reportError("Can't accept incoming connection");
+					continue;
+				}
+
+				onSocketConnected(newSocket, sacc);
+				addSocket(newSocket);
+
+			}
+			else // client socket
+			{
+				int res = recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0);
+
+				// TODO(jesus): handle disconnections. Remember that a socket has been
+				// disconnected from its remote end either when recv() returned 0,
+				// or when it generated some errors such as ECONNRESET.
+				// Communicate detected disconnections to the subclass using the callback
+				// onSocketDisconnected().
+
+				if (res == SOCKET_ERROR || res == ECONNRESET || res == 0) // res = 0 = connection closed
+				{
+					//reportError("receiving incoming data or connection end");
+					disconnectedSockets.push_back(s);
+				}
+				else
+				{
+					onSocketReceivedData(s, incomingDataBuffer);
+				}
+			}
+		}
+	}
 
 	// TODO(jesus): Finally, remove all disconnected sockets from the list
 	// of managed sockets.
+
+	for (std::list<SOCKET>::iterator ds = disconnectedSockets.begin(); ds != disconnectedSockets.end(); ++ds)
+	{
+		onSocketDisconnected((*ds));
+		sockets.erase(std::find(sockets.begin(), sockets.end(), (*ds)));
+	}
 
 	return true;
 }

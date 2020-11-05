@@ -32,7 +32,7 @@ private:
 	// ModuleNetworking virtual methods
 	//////////////////////////////////////////////////////////////////////
 
-	void onSocketReceivedData(SOCKET socket, byte * data) override;
+	void onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet) override;
 
 	void onSocketDisconnected(SOCKET socket) override;
 
@@ -52,7 +52,7 @@ private:
 	ClientState state = ClientState::Stopped;
 
 	sockaddr_in serverAddress = {};
-	SOCKET s = INVALID_SOCKET;
+	SOCKET client_socket = INVALID_SOCKET;
 
 	std::string playerName;
 };

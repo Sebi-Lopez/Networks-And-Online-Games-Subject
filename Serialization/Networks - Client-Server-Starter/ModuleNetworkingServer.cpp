@@ -132,14 +132,22 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 	connectedSockets.push_back(connectedSocket);
 }
 
-void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, byte * data)
+void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
 	// Set the player name of the corresponding connected socket proxy
-	for (auto &connectedSocket : connectedSockets)
+	ClientMessage clientMessage;
+	packet >> clientMessage; 
+
+	if (clientMessage == ClientMessage::Hello)
 	{
-		if (connectedSocket.socket == socket)
+		for (auto &connectedSocket : connectedSockets)
 		{
-			connectedSocket.playerName = (const char *)data;
+			std::string playerName;
+			packet >> playerName;
+			if (connectedSocket.socket == socket)
+			{
+				connectedSocket.playerName = playerName;
+			}
 		}
 	}
 }

@@ -14,8 +14,8 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 	int res = 0;
 
 	// create the socket
-	s = socket(AF_INET, SOCK_STREAM, 0);
-	if (s == INVALID_SOCKET)
+	client_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (client_socket == INVALID_SOCKET)
 	{
 		reportError("creating socket");
 		return false;
@@ -27,7 +27,7 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 	inet_pton(AF_INET, serverAddressStr, &serverAddress.sin_addr);
 	
 	// connect to remote address
-	res = connect(s, (const struct sockaddr*)&serverAddress, sizeof(serverAddress));
+	res = connect(client_socket, (const struct sockaddr*)&serverAddress, sizeof(serverAddress));
 	if (res == SOCKET_ERROR)
 	{
 		reportError("Connecting to remote addr socket");
@@ -35,7 +35,7 @@ bool  ModuleNetworkingClient::start(const char * serverAddressStr, int serverPor
 	}
 
 	// add to managed list
-	addSocket(s);
+	addSocket(client_socket);
 
 	// If everything was ok... change the state
 	state = ClientState::Start;
@@ -52,13 +52,18 @@ bool ModuleNetworkingClient::update()
 {
 	if (state == ClientState::Start)
 	{
-		// TODO(jesus): Send the player name to the server
-		int res = send(s, (playerName + '\0').c_str(), playerName.length() + 1, 0);
-		if (res == SOCKET_ERROR) {
-			reportError("sending name msg");
-		}
-		else {
+		OutputMemoryStream packet;
+		packet << ClientMessage::Hello;
+		packet << playerName;
+
+		if (sendPacket(packet, client_socket))
+		{
 			state = ClientState::Logging;
+		}
+		else
+		{
+			disconnect();
+			state = ClientState::Stopped;
 		}
 	}
 
@@ -84,7 +89,7 @@ bool ModuleNetworkingClient::gui()
 	return true;
 }
 
-void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, byte * data)
+void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
 	state = ClientState::Stopped;
 }

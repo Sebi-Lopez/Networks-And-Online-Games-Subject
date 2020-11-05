@@ -25,6 +25,17 @@ void ModuleNetworking::reportError(const char* inOperationDesc)
 	ELOG("Error %s: %d- %s", inOperationDesc, errorNum, lpMsgBuf);
 }
 
+bool ModuleNetworking::sendPacket(const OutputMemoryStream& packet, SOCKET socket)
+{
+	int result = send(socket, packet.GetBufferPtr(), packet.GetSize(), 0);
+	if (result == SOCKET_ERROR)
+	{
+		reportError("Send");
+		return false;
+	}
+	return true;
+}
+
 void ModuleNetworking::disconnect()
 {
 	for (SOCKET socket : sockets)
@@ -122,7 +133,8 @@ bool ModuleNetworking::preUpdate()
 			}
 			else // client socket
 			{
-				int res = recv(s, (char*)incomingDataBuffer, incomingDataBufferSize, 0);
+				InputMemoryStream packet;
+				int bytesRead = recv(s, packet.GetBufferPtr(), packet.GetCapacity(), 0);
 
 				// TODO(jesus): handle disconnections. Remember that a socket has been
 				// disconnected from its remote end either when recv() returned 0,
@@ -130,14 +142,15 @@ bool ModuleNetworking::preUpdate()
 				// Communicate detected disconnections to the subclass using the callback
 				// onSocketDisconnected().
 
-				if (res == SOCKET_ERROR || res == ECONNRESET || res == 0) // res = 0 = connection closed
+				if (bytesRead == SOCKET_ERROR || bytesRead == ECONNRESET || bytesRead == 0) // res = 0 = connection closed
 				{
 					//reportError("receiving incoming data or connection end");
 					disconnectedSockets.push_back(s);
 				}
 				else
 				{
-					onSocketReceivedData(s, incomingDataBuffer);
+					packet.SetSize((uint32)bytesRead);
+					onSocketReceivedData(s, packet);
 				}
 			}
 		}

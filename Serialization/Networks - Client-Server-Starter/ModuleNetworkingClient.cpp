@@ -81,8 +81,29 @@ bool ModuleNetworkingClient::gui()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
+		if (ImGui::Button("Disconnect"))
+		{
+			disconnect();
+			state = ClientState::Stopped;
+			ClearChat();
+		}
+
 		ImGui::Text("%s connected to the server...", playerName.c_str());
 
+		for (std::list<ChatEntry>::iterator iter = chatLog.begin(); iter != chatLog.end(); iter++)
+		{
+			PrintChatEntry((*iter));
+		}
+
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 150);
+
+		char user_message[120] = { "\0" };
+
+		if (ImGui::InputText("Chat", user_message, 120, ImGuiInputTextFlags_EnterReturnsTrue))
+		{
+			SendChatMessage(user_message);
+		}
+		
 		ImGui::End();
 	}
 
@@ -91,11 +112,57 @@ bool ModuleNetworkingClient::gui()
 
 void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
 {
-	state = ClientState::Stopped;
+	ServerMessage serverMessage;
+	packet >> serverMessage; 
+
+	if (serverMessage == ServerMessage::Welcome)
+	{
+		std::string from; 
+		packet >> from;
+		std::string message;
+		packet >> message;
+		chatLog.push_back(ChatEntry(message));
+	}
+
+	if (serverMessage == ServerMessage::ChatDistribution)
+	{
+		std::string from; 
+		packet >> from;
+		std::string message;
+		packet >> message; 
+		chatLog.push_back(ChatEntry(from, message));
+	}
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 {
 	state = ClientState::Stopped;
+}
+
+void ModuleNetworkingClient::PrintChatEntry(ChatEntry entry)
+{
+
+	if (entry.from.empty())
+	{
+		ImGui::Text("%s", entry.text.c_str());
+	}
+	else
+	{
+		ImGui::Text("%s: %s", entry.from.c_str(), entry.text.c_str());
+	}
+}
+
+void ModuleNetworkingClient::ClearChat()
+{
+	chatLog.clear();
+}
+
+void ModuleNetworkingClient::SendChatMessage(std::string message)
+{
+	OutputMemoryStream messagePackage; 
+	messagePackage << ClientMessage::ChatEntry;
+	messagePackage << playerName;
+	messagePackage << message;
+	sendPacket(messagePackage, client_socket);
 }
 

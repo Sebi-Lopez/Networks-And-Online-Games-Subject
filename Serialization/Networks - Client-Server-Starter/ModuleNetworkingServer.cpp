@@ -130,6 +130,12 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 	connectedSocket.socket = socket;
 	connectedSocket.address = socketAddress;
 	connectedSockets.push_back(connectedSocket);
+	
+	OutputMemoryStream welcomePackage; 
+	welcomePackage << ServerMessage::Welcome;
+	welcomePackage << "Server";
+	welcomePackage << " --------- Welcome to the CHAT ---------";
+	sendPacket(welcomePackage, socket);
 }
 
 void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
@@ -140,14 +146,33 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 	if (clientMessage == ClientMessage::Hello)
 	{
+		std::string playerName;
+		packet >> playerName;
+
 		for (auto &connectedSocket : connectedSockets)
 		{
-			std::string playerName;
-			packet >> playerName;
 			if (connectedSocket.socket == socket)
 			{
 				connectedSocket.playerName = playerName;
 			}
+		}
+	}
+
+	if (clientMessage == ClientMessage::ChatEntry)
+	{
+		std::string from;
+		std::string message;
+		packet >> from;
+		packet >> message;
+
+		OutputMemoryStream chatPackage; 
+		chatPackage << ServerMessage::ChatDistribution; 
+		chatPackage << from; 
+		chatPackage << message;
+
+		for (auto& connectedSocket : connectedSockets)
+		{
+			sendPacket(chatPackage, connectedSocket.socket);
 		}
 	}
 }

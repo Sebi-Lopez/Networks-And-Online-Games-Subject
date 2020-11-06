@@ -2,6 +2,10 @@
 
 #include "ModuleNetworking.h"
 
+#include <list>
+
+
+
 class ModuleNetworkingClient : public ModuleNetworking
 {
 public:
@@ -36,7 +40,11 @@ private:
 
 	void onSocketDisconnected(SOCKET socket) override;
 
+	void PrintChatEntry(ChatEntry entry);
 
+	void ClearChat();
+
+	void SendChatMessage(std::string message);
 
 	//////////////////////////////////////////////////////////////////////
 	// Client state
@@ -55,5 +63,7 @@ private:
 	SOCKET client_socket = INVALID_SOCKET;
 
 	std::string playerName;
+
+	std::list<ChatEntry> chatLog; 
 };
 

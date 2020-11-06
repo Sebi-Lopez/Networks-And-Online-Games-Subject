@@ -1,5 +1,17 @@
 #pragma once
 
+struct ChatEntry
+{
+	ChatEntry(std::string from, std::string text) : 
+		from(from), text(text) {}
+
+	ChatEntry(std::string text) :
+		text(text) {}
+
+	std::string from;
+	std::string text;
+	float color[3] = { 0.0f, 0.0f,0.0f };
+};
 
 class ModuleNetworking : public Module
 {

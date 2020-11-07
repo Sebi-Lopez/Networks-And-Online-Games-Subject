@@ -117,10 +117,16 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 
 	if (serverMessage == ServerMessage::Welcome)
 	{
-		std::string from; 
+		std::string from;
 		packet >> from;
 		std::string message;
 		packet >> message;
+
+		// Set User color
+		packet >> user_color[0];
+		packet >> user_color[1];
+		packet >> user_color[2];
+
 		chatLog.push_back(ChatEntry(from, message, 0.0f, 1.0f, 1.0f));
 	}
 	else if (serverMessage == ServerMessage::Notification)
@@ -138,7 +144,14 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> from;
 		std::string message;
 		packet >> message; 
-		chatLog.push_back(ChatEntry(from, message));
+		
+		// Set User color
+		float r, g, b;
+		packet >> r;
+		packet >> g;
+		packet >> b;
+
+		chatLog.push_back(ChatEntry(from, message, r, g, b));
 	}
 }
 
@@ -181,6 +194,9 @@ void ModuleNetworkingClient::SendChatMessage(std::string message)
 	messagePackage << ClientMessage::ChatEntry;
 	messagePackage << playerName;
 	messagePackage << message;
+	for (int i = 0; i < 3; ++i)
+		messagePackage << user_color[i];
+
 	sendPacket(messagePackage, client_socket);
 }
 

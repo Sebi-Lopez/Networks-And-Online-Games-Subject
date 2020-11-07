@@ -1,6 +1,7 @@
 #include "ModuleNetworkingServer.h"
 
 
+#include <random>
 
 
 //////////////////////////////////////////////////////////////////////
@@ -60,6 +61,9 @@ bool ModuleNetworkingServer::start(int port)
 
 
 	state = ServerState::Listening;
+
+	// Random seeding
+	srand(time(NULL));
 
 	return true;
 }
@@ -136,6 +140,11 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 	welcomePackage << ServerMessage::Welcome;
 	welcomePackage << "Server";
 	welcomePackage << " --------- Welcome to the CHAT ---------";
+
+	// Send 3 floats to set the users color - Random is set from 0.6 to 1 to try and get only bright colors. 
+	for (int i = 0; i < 3; ++i)
+		welcomePackage << 0.6f + ((rand() % 40) / 100.f);
+
 	sendPacket(welcomePackage, socket);
 }
 
@@ -154,7 +163,9 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		{
 			if (connectedSocket.socket == socket)
 			{
+				// Set user name
 				connectedSocket.playerName = playerName;
+				// Notify all other users that a new user has connected
 				NotifyAllConnectedUsers(playerName, NotificationType::NewUser);
 				break;
 			}
@@ -163,15 +174,24 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 	if (clientMessage == ClientMessage::ChatEntry)
 	{
+		// Get Message Data
 		std::string from;
-		std::string message;
+		std::string message;		
+		float color[3];
+
 		packet >> from;
 		packet >> message;
+		for (int i = 0; i < 3; ++i)
+			packet >> color[i];
 
+		// Send message data to everyone
 		OutputMemoryStream chatPackage; 
 		chatPackage << ServerMessage::ChatDistribution; 
 		chatPackage << from; 
 		chatPackage << message;
+
+		for (int i = 0; i < 3; ++i)
+			chatPackage << color[i];
 
 		for (auto& connectedSocket : connectedSockets)
 		{

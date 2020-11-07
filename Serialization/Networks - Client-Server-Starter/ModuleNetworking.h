@@ -2,15 +2,17 @@
 
 struct ChatEntry
 {
-	ChatEntry(std::string from, std::string text) : 
-		from(from), text(text) {}
+	ChatEntry(std::string from, std::string text, float r = 1.f, float g = 1.f, float b = 1.f) : 
+		from(from), text(text), r(r), g(g), b(b) {}
 
 	ChatEntry(std::string text) :
 		text(text) {}
 
 	std::string from;
 	std::string text;
-	float color[3] = { 0.0f, 0.0f,0.0f };
+	float r = 1.f;
+	float g = 1.f; 
+	float b = 1.f;
 };
 
 class ModuleNetworking : public Module

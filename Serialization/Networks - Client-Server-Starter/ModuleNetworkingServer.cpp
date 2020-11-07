@@ -131,6 +131,7 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 	connectedSocket.address = socketAddress;
 	connectedSockets.push_back(connectedSocket);
 	
+	// Send the welcome package back 
 	OutputMemoryStream welcomePackage; 
 	welcomePackage << ServerMessage::Welcome;
 	welcomePackage << "Server";
@@ -154,6 +155,8 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			if (connectedSocket.socket == socket)
 			{
 				connectedSocket.playerName = playerName;
+				NotifyAllConnectedUsers(playerName, NotificationType::NewUser);
+				break;
 			}
 		}
 	}
@@ -185,9 +188,38 @@ void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 		auto &connectedSocket = *it;
 		if (connectedSocket.socket == socket)
 		{
+			NotifyAllConnectedUsers(connectedSocket.playerName, NotificationType::DisconnectedUser);
 			connectedSockets.erase(it);
 			break;
 		}
+	}
+}
+
+void ModuleNetworkingServer::NotifyAllConnectedUsers(const std::string newUser, NotificationType notificationType)
+{
+	OutputMemoryStream notificationPackage; 
+
+	notificationPackage << ServerMessage::Notification; 
+	notificationPackage << "Server";
+
+	// Set the notification message
+	std::string notificationMsg;
+	switch (notificationType)
+	{
+	case NotificationType::NewUser:
+		notificationMsg = newUser + " joined the chat";
+		break;
+
+	case NotificationType::DisconnectedUser:
+		notificationMsg = newUser + " left the chat";
+		break;
+	}
+
+	notificationPackage << notificationMsg;
+
+	for (auto& connectedSocket : connectedSockets)
+	{
+		sendPacket(notificationPackage, connectedSocket.socket);
 	}
 }
 

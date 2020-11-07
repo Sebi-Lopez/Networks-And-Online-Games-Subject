@@ -121,10 +121,18 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> from;
 		std::string message;
 		packet >> message;
-		chatLog.push_back(ChatEntry(message));
+		chatLog.push_back(ChatEntry(from, message, 0.0f, 1.0f, 1.0f));
+	}
+	else if (serverMessage == ServerMessage::Notification)
+	{
+		std::string from;
+		packet >> from;
+		std::string message;
+		packet >> message;
+		chatLog.push_back(ChatEntry(from, message, 1.0f, 1.0f, 0.0f));
 	}
 
-	if (serverMessage == ServerMessage::ChatDistribution)
+	else if (serverMessage == ServerMessage::ChatDistribution)
 	{
 		std::string from; 
 		packet >> from;
@@ -142,13 +150,23 @@ void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
 void ModuleNetworkingClient::PrintChatEntry(ChatEntry entry)
 {
 
-	if (entry.from.empty())
+	if (entry.from.empty() || entry.from == "Server")
 	{
+		// Messages from server are not printed who sends them
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g,entry.b, 255));
 		ImGui::Text("%s", entry.text.c_str());
+		ImGui::PopStyleColor();
 	}
 	else
 	{
-		ImGui::Text("%s: %s", entry.from.c_str(), entry.text.c_str());
+		// Print message SENDER with its color
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g, entry.b, 255));
+		ImGui::Text("%s:", entry.from.c_str());
+		ImGui::PopStyleColor();
+
+		// Print the actual message
+		ImGui::SameLine();
+		ImGui::Text("%s", entry.text.c_str());
 	}
 }
 

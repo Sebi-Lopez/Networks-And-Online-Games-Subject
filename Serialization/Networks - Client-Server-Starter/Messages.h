@@ -12,6 +12,13 @@ enum class ClientMessage
 enum class ServerMessage
 {
 	Welcome,
-	ChatDistribution
+	ChatDistribution,
+	Notification,
+	NameAlreadyExists
 };
 
+enum class NotificationType
+{
+	NewUser,
+	DisconnectedUser
+};

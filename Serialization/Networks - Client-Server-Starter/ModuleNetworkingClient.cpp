@@ -81,14 +81,14 @@ bool ModuleNetworkingClient::gui()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
-		if (ImGui::Button("Disconnect"))
+		if (ImGui::Button("Log Out"))
 		{
 			disconnect();
 			state = ClientState::Stopped;
 			ClearChat();
 		}
-
-		ImGui::Text("%s connected to the server...", playerName.c_str());
+		ImGui::SameLine();
+		ImGui::Text("Logged in as: %s", playerName.c_str());
 
 		for (std::list<ChatEntry>::iterator iter = chatLog.begin(); iter != chatLog.end(); iter++)
 		{

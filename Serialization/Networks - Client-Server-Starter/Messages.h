@@ -14,7 +14,7 @@ enum class ServerMessage
 	Welcome,
 	ChatDistribution,
 	Notification,
-	NameAlreadyExists
+	NameNotAvailable
 };
 
 enum class NotificationType

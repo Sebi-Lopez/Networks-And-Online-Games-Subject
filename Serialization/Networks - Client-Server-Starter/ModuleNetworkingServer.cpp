@@ -1,8 +1,5 @@
 #include "ModuleNetworkingServer.h"
 
-
-
-
 //////////////////////////////////////////////////////////////////////
 // ModuleNetworkingServer public methods
 //////////////////////////////////////////////////////////////////////
@@ -60,6 +57,9 @@ bool ModuleNetworkingServer::start(int port)
 
 
 	state = ServerState::Listening;
+
+	// Random seeding
+	srand(time(NULL));
 
 	return true;
 }
@@ -150,14 +150,34 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		std::string playerName;
 		packet >> playerName;
 
-		for (auto &connectedSocket : connectedSockets)
+		if (isNameAvailable(playerName))
 		{
-			if (connectedSocket.socket == socket)
+			for (auto& connectedSocket : connectedSockets)
 			{
-				connectedSocket.playerName = playerName;
-				NotifyAllConnectedUsers(playerName, NotificationType::NewUser);
-				break;
+				if (connectedSocket.socket == socket)
+				{
+					connectedSocket.playerName = playerName;
+					NotifyAllConnectedUsers(playerName, NotificationType::NewUser);
+					break;
+				}
 			}
+		}
+		else
+		{
+			// Send notification that the name is taken 
+			OutputMemoryStream notification;
+			notification << ServerMessage::NameNotAvailable;
+			sendPacket(notification, socket);
+
+			// Delete it from the connected sockets (it will be disconnected on its own)
+			/*for (auto it = connectedSockets.begin(); it != connectedSockets.end(); ++it)
+			{
+				if ((*it).socket == socket)
+				{
+					connectedSockets.erase(it);
+					break;
+				}
+			}*/
 		}
 	}
 
@@ -202,7 +222,7 @@ void ModuleNetworkingServer::NotifyAllConnectedUsers(const std::string newUser, 
 	notificationPackage << ServerMessage::Notification; 
 	notificationPackage << "Server";
 
-	// Set the notification message
+	// Set the notification message depending on the type
 	std::string notificationMsg;
 	switch (notificationType)
 	{
@@ -221,5 +241,15 @@ void ModuleNetworkingServer::NotifyAllConnectedUsers(const std::string newUser, 
 	{
 		sendPacket(notificationPackage, connectedSocket.socket);
 	}
+}
+
+bool ModuleNetworkingServer::isNameAvailable(const std::string newName)
+{
+	for (auto& connectedSocket : connectedSockets)
+	{
+		if (connectedSocket.playerName == newName)
+			return false;
+	}
+	return true;
 }
 

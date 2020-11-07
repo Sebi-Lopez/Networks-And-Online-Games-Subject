@@ -81,14 +81,16 @@ bool ModuleNetworkingClient::gui()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
-		if (ImGui::Button("Disconnect"))
+		if (ImGui::Button("Log Out"))
 		{
 			disconnect();
 			state = ClientState::Stopped;
 			ClearChat();
 		}
+		ImGui::SameLine();
+		ImGui::Text("Logged in as: %s", playerName.c_str());
+		
 
-		ImGui::Text("%s connected to the server...", playerName.c_str());
 
 		for (std::list<ChatEntry>::iterator iter = chatLog.begin(); iter != chatLog.end(); iter++)
 		{
@@ -122,6 +124,14 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		std::string message;
 		packet >> message;
 		chatLog.push_back(ChatEntry(from, message, 0.0f, 1.0f, 1.0f));
+	}
+	else if (serverMessage == ServerMessage::NameNotAvailable)
+	{
+		// Show User that name is not available
+		LOG("Name is already taken. Pleas chose another one.");
+		ClearChat();
+		disconnect();
+		state = ClientState::Stopped;
 	}
 	else if (serverMessage == ServerMessage::Notification)
 	{

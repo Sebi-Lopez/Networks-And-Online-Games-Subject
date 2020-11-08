@@ -81,6 +81,7 @@ bool ModuleNetworkingClient::gui()
 		ImVec2 texSize(400.0f, 400.0f * tex->height / tex->width);
 		ImGui::Image(tex->shaderResource, texSize);
 
+
 		if (ImGui::Button("Log Out"))
 		{
 			disconnect();
@@ -90,6 +91,8 @@ bool ModuleNetworkingClient::gui()
 		ImGui::SameLine();
 		ImGui::Text("Username: %s", playerName.c_str());
 
+		ImGui::BeginChild("Hello", ImVec2(0, ImGui::GetWindowSize().y - 250), true);
+
 		if (state == ClientState::Failed)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.f, 0.f, 1.0f));
@@ -97,6 +100,7 @@ bool ModuleNetworkingClient::gui()
 			ImGui::PopStyleColor();
 			ImGui::Text("**** Please log out and try again with another name ****");
 
+			ImGui::EndChild();
 			ImGui::End();
 			return true;
 		}
@@ -108,6 +112,7 @@ bool ModuleNetworkingClient::gui()
 			ImGui::PopStyleColor();
 			ImGui::Text("**** You pissed someone off. Be carefull with your actions ****");
 
+			ImGui::EndChild();
 			ImGui::End();
 			return true;
 		}
@@ -117,7 +122,8 @@ bool ModuleNetworkingClient::gui()
 			PrintChatEntry((*iter));
 		}
 
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 150);
+
+		ImGui::EndChild();
 
 		char user_message[120] = { "\0" };
 

@@ -134,18 +134,6 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 	connectedSocket.socket = socket;
 	connectedSocket.address = socketAddress;
 	connectedSockets.push_back(connectedSocket);
-	
-	// Send the welcome package back 
-	OutputMemoryStream welcomePackage; 
-	welcomePackage << ServerMessage::Welcome;
-	welcomePackage << "Server";
-	welcomePackage << " --------- Welcome to the CHAT ---------";
-
-	// Send 3 floats to set the users color - Random is set from 0.6 to 1 to try and get only bright colors. 
-	for (int i = 0; i < 3; ++i)
-		welcomePackage << 0.6f + ((rand() % 40) / 100.f);
-
-	sendPacket(welcomePackage, socket);
 }
 
 void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemoryStream& packet)
@@ -166,6 +154,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 				if (connectedSocket.socket == socket)
 				{
 					connectedSocket.playerName = playerName;
+					SendWelcomePackage(socket);
 					NotifyAllConnectedUsers(playerName, NotificationType::NewUser);
 					break;
 				}
@@ -179,14 +168,14 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			sendPacket(notification, socket);
 
 			// Delete it from the connected sockets (it will be disconnected on its own)
-			/*for (auto it = connectedSockets.begin(); it != connectedSockets.end(); ++it)
+			for (auto it = connectedSockets.begin(); it != connectedSockets.end(); ++it)
 			{
 				if ((*it).socket == socket)
 				{
 					connectedSockets.erase(it);
 					break;
 				}
-			}*/
+			}
 		}
 	}
 
@@ -221,7 +210,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	{
 		OutputMemoryStream helpPackage; 
 		helpPackage << ServerMessage::CommandResponse;
-		helpPackage << "Here's the list of commands that you can make: \n/help\n/list\n/whisper [to] [message]...";
+		helpPackage << "Here's the list of commands that you can use: \n/help\n/list\n/whisper [to] [message]...";
 		
 		sendPacket(helpPackage, socket);
 	}
@@ -336,3 +325,17 @@ bool ModuleNetworkingServer::isNameAvailable(const std::string newName)
 	return true;
 }
 
+void ModuleNetworkingServer::SendWelcomePackage(SOCKET socket)
+{
+	// Send the welcome package back 
+	OutputMemoryStream welcomePackage;
+	welcomePackage << ServerMessage::Welcome;
+	welcomePackage << "Server";
+	welcomePackage << " --------- Welcome to the CHAT ---------";
+
+	// Send 3 floats to set the users color - Random is set from 0.6 to 1 to try and get only bright colors. 
+	for (int i = 0; i < 3; ++i)
+		welcomePackage << 0.6f + ((rand() % 40) / 100.f);
+
+	sendPacket(welcomePackage, socket);
+}

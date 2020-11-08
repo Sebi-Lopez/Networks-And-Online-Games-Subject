@@ -56,7 +56,8 @@ private:
 	{
 		Stopped,
 		Start,
-		Logging
+		Logging,
+		Failed
 	};
 
 	ClientState state = ClientState::Stopped;

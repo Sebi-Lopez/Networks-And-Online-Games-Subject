@@ -72,7 +72,7 @@ bool ModuleNetworkingClient::update()
 
 bool ModuleNetworkingClient::gui()
 {
-	if (state != ClientState::Stopped)
+	if (state != ClientState::Stopped )
 	{
 		// NOTE(jesus): You can put ImGui code here for debugging purposes
 		ImGui::Begin("Client Window");
@@ -88,7 +88,18 @@ bool ModuleNetworkingClient::gui()
 			ClearChat();
 		}
 		ImGui::SameLine();
-		ImGui::Text("Logged in as: %s", playerName.c_str());
+		ImGui::Text("Username: %s", playerName.c_str());
+
+		if (state == ClientState::Failed)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.f, 0.f, 1.0f));
+			ImGui::Text("**** COULDN'T LOG IN PROPERLY: NAME ALREADY EXISTS ****");
+			ImGui::PopStyleColor();
+			ImGui::Text("**** Please log out and try again with another name ****");
+
+			ImGui::End();
+			return true;
+		}
 
 		for (std::list<ChatEntry>::iterator iter = chatLog.begin(); iter != chatLog.end(); iter++)
 		{
@@ -132,10 +143,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	else if (serverMessage == ServerMessage::NameAlreadyExists)
 	{
 		// Show User that name is not available
-		LOG("Name is already taken. Pleas chose another one.");
-		ClearChat();
-		disconnect();
-		state = ClientState::Stopped;
+		state = ClientState::Failed;
 	}
 	else if (serverMessage == ServerMessage::Notification)
 	{

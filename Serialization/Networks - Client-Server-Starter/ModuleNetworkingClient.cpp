@@ -114,7 +114,8 @@ bool ModuleNetworkingClient::gui()
 		{
 			SendChatMessage(user_message);
 		}
-		
+		ImGui::SetKeyboardFocusHere();
+
 		ImGui::End();
 	}
 

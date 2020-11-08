@@ -50,6 +50,8 @@ private:
 
 	bool isMuted(const std::string& user);
 
+	void BreakDownCommand(const std::string& message, std::string& command, std::string& first_attrib, std::string& second_attrib);
+
 	//////////////////////////////////////////////////////////////////////
 	// Client state
 	//////////////////////////////////////////////////////////////////////

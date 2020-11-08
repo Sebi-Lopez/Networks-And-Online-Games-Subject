@@ -293,7 +293,14 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 
 	OutputMemoryStream messagePackage;
 
-	if (message.at(0) != '/') {
+	std::string command; 
+	std::string first_attribute;
+	std::string second_attribute; 
+
+	BreakDownCommand(message, command, first_attribute, second_attribute);
+
+	if (command.empty())
+	{
 		// Normal message
 		messagePackage << ClientMessage::ChatEntry;
 		messagePackage << playerName;
@@ -303,78 +310,41 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 	}
 	else
 	{
-		// Find the actual command that is made from the '/' char to the first space
-		size_t first_space = message.find_first_of(" ");
-		size_t sizeMessage = message.size();
-		std::string command;
-
-		if (first_space == std::string::npos) // Case there's no space 
-			command = message.substr(1); // Take the whole message without the first char: '/'
-		else
-			command = message.substr(1, first_space - 1); // - 1 cause endCommand points to the space pos
-
-		if (command.compare(std::string("help")) == 0 && first_space == std::string::npos)
+		if (command.compare(std::string("help")) == 0 && first_attribute.empty())
 		{
 			messagePackage << ClientMessage::C_Help;
 		}
-		else if (command.compare(std::string("list")) == 0 && first_space == std::string::npos)
+		else if (command.compare(std::string("list")) == 0 && first_attribute.empty())
 		{
 			messagePackage << ClientMessage::C_List;
 		}
-		else if (command.compare(std::string("clear")) == 0 && first_space == std::string::npos)
+		else if (command.compare(std::string("clear")) == 0 && first_attribute.empty())
 		{
 			ClearChat();
 		}
-		else if (command.compare(std::string("mute")) == 0 )
+		else if (command.compare(std::string("mute")) == 0)
 		{
-			if (first_space == std::string::npos)	// This means that the command doesnt have any attributes
-			{
-				PushCommandError();
-				return;
-			}
-			std::string attributes = message.substr(first_space);  // Keep only from first_space till the end
-			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
+			messagePackage << ClientMessage::C_Mute;
 
-			size_t secondSpace = attributes.find_first_of(" ");
-
-			if(secondSpace != std::string::npos) // This means it has 2 attributes because there's a second space
+			// It ONLY has to have the first attribute
+			if (first_attribute.empty() || !second_attribute.empty())
 			{
 				PushCommandError();
 				return;
 			}
 
-			// Since it only has one attribute, it must be the user
-			std::string to = attributes;
-
-			if (to == playerName)
-			{
-				chatLog.push_back(ChatEntry("You can't mute yourself, silly ;).", 0.5f, 0.5f, 0.5f));
-				return;
-			}
-
-			messagePackage << ClientMessage::C_Mute; 
-			messagePackage << to;
+			messagePackage << first_attribute;
 		}
 		else if (command.compare(std::string("unmute")) == 0)
 		{
-			if (first_space == std::string::npos)	// This means that the command doesnt have any attributes
-			{
-				PushCommandError();
-				return;
-			}
-			std::string attributes = message.substr(first_space); // Keep only from first_space till the end
-			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
-
-			size_t secondSpace = attributes.find_first_of(" ");
-
-			if (secondSpace != std::string::npos) // This means it has 2 attributes because there's a second space
+			// It ONLY has to have the first attribute
+			if (first_attribute.empty() || !second_attribute.empty())
 			{
 				PushCommandError();
 				return;
 			}
 
-			// Since it only has one attribute, it must be the user
-			std::string user = attributes;
+			std::string user = first_attribute;
 
 			if (user == playerName)
 			{
@@ -397,27 +367,18 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 		}
 		else if (command.compare(std::string("kick")) == 0)
 		{
-			if (first_space == std::string::npos)	// This means that the command doesnt have any attributes
-			{
-				PushCommandError();
-				return;
-			}
-			std::string attributes = message.substr(first_space);  // Keep only from first_space till the end
-			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
-
-			size_t secondSpace = attributes.find_first_of(" ");
-
-			if (secondSpace != std::string::npos) // This means it has 2 attributes because there's a second space
+			// It ONLY has to have the first attribute
+			if (first_attribute.empty() || !second_attribute.empty())
 			{
 				PushCommandError();
 				return;
 			}
 
-			std::string user = attributes;
+			std::string user = first_attribute;
 
 			if (user == playerName)
 			{
-				chatLog.push_back(ChatEntry("If you want to kick yourself, you can use the avobe button 'Log Out'. Don't hurt yourself.",0.5f, 0.5f, 0.5f));
+				chatLog.push_back(ChatEntry("If you want to kick yourself, you can use the avobe button 'Log Out'. Don't hurt yourself.", 0.5f, 0.5f, 0.5f));
 				return;
 			}
 
@@ -427,27 +388,14 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 		}
 		else if (command.compare(std::string("whisper")) == 0)
 		{
-			if (first_space == std::string::npos)	// This means that the command doesnt have any attributes
+			// It has to have both attributes
+			if (first_attribute.empty() || second_attribute.empty())
 			{
 				PushCommandError();
 				return;
 			}
 
-			// String with the rest of the attributes of the command
-			std::string attributes = message.substr(first_space);
-			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
-
-			size_t size_attributes = attributes.size();
-			size_t secondSpace = attributes.find_first_of(" ");
-
-			if (secondSpace == std::string::npos || size_attributes <= secondSpace) // This means that the command only has one attribute
-			{
-				PushCommandError();
-				return;
-			}
-
-			// Attribute till the "first" space
-			std::string to = attributes.substr(0, secondSpace);
+			std::string to = first_attribute;
 
 			if (to == playerName)
 			{
@@ -455,20 +403,20 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 				return;
 			}
 
-			std::string msg_whispered = attributes.substr(secondSpace + 1);
+			std::string msg_whispered = second_attribute;
 
 			messagePackage << ClientMessage::C_Whisper;
 			messagePackage << playerName; // From
 			messagePackage << to;
 			messagePackage << msg_whispered;
+
 		}
 		else
 		{
 			PushCommandError();
 			return;
 		}
-	}
-	
+	}	
 
 	sendPacket(messagePackage, client_socket);
 }
@@ -490,5 +438,49 @@ bool ModuleNetworkingClient::isMuted(const std::string& user)
 		}
 	}
 	return false;
+}
+
+void ModuleNetworkingClient::BreakDownCommand(const std::string& message, std::string& command, std::string& first_attrib, std::string& second_attrib)
+{
+	// NO COMMAND
+	if (message.at(0) != '/') // There is no command to break down
+		return;
+
+
+	// COMMAND WITHOUT ATTRIBUTES
+
+	size_t first_space = message.find_first_of(" ");
+	if (first_space == std::string::npos) // Case there's no space 
+	{
+		command = message.substr(1); // Take the whole message without the first char: '/'
+		return;
+	}
+	else {
+		command = message.substr(1, first_space - 1); // - 1 cause endCommand points to the space pos
+	}
+
+
+	// COMMAND WITH ATTRIBUTES
+
+	std::string attributes = message.substr(first_space);  // Keep only from first_space till the end
+	attributes = attributes.substr(1); // The first character is a space, so we erase it; 
+
+	// Attributes right now is the whole sentance after the first space 
+
+	size_t secondSpace = attributes.find_first_of(" ");
+
+	if (secondSpace == std::string::npos) // This means there is no second space, therefore only one attribute
+	{
+		first_attrib = attributes;
+		return;
+	}
+
+	// Now we are sure there are 2 words, and we know the pos of the space 
+	
+	// The first attribute is from the beggining to the pos of the space
+	first_attrib = attributes.substr(0, secondSpace);
+
+	// And the second one is from that pos (+1, cause otherwise you would take that space with you) till the end.
+	second_attrib = attributes.substr(secondSpace + 1);
 }
 

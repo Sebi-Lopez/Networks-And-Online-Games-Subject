@@ -203,7 +203,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	{
 		OutputMemoryStream helpPackage; 
 		helpPackage << ServerMessage::CommandResponse;
-		helpPackage << "Here's the list of commands that you can make: \n/help\n/list\n...";
+		helpPackage << "Here's the list of commands that you can make: \n/help\n/list\n/whisper [to] [message]...";
 		
 		sendPacket(helpPackage, socket);
 	}
@@ -222,6 +222,46 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		listPackage << user_list;
 
 		sendPacket(listPackage, socket);
+	}
+
+	if (clientMessage == ClientMessage::C_Whisper)
+	{
+		std::string to;
+		std::string msg;
+		std::string from;
+		packet >> from;
+		packet >> to;
+		packet >> msg;
+
+		OutputMemoryStream whisperPacket;
+		bool found = false; 
+
+		// Find the whispered and send the whisper
+		for (auto& connectedSocket : connectedSockets)
+		{
+			if (connectedSocket.playerName == to)
+			{
+				whisperPacket << ServerMessage::Whisper;
+				whisperPacket << from;
+				whisperPacket << msg;
+				sendPacket(whisperPacket, connectedSocket.socket);
+				found = true;
+				break;
+			}
+		}
+
+		// Send a response to the whisperer
+		OutputMemoryStream responsePacket;
+		responsePacket << ServerMessage::CommandResponse;
+		std::string response;
+
+		if (!found) 			
+			response = "Couldn't find " + to + ".\nType /list to get the list of all connected users.";
+		else					
+			response = "Whisper sent correctly to: " + to + ".\nWhispered: " + msg;
+
+		responsePacket << response;
+		sendPacket(responsePacket, socket);
 	}
 }
 

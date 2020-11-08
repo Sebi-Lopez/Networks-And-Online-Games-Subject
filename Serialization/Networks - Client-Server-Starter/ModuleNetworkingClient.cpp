@@ -158,6 +158,17 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 
 		chatLog.push_back(ChatEntry(from, message, r, g, b));
 	}
+	else if (serverMessage == ServerMessage::Whisper)
+	{
+		std::string from;
+		packet >> from;
+		std::string message;
+		packet >> message;
+		std::string notification = from + " whispered to you: ";
+		chatLog.push_back(ChatEntry(notification, 0.2f, 0.2f, 0.9f));
+		chatLog.push_back(ChatEntry(from, message));
+
+	}
 }
 
 void ModuleNetworkingClient::onSocketDisconnected(SOCKET socket)
@@ -210,9 +221,12 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 		// Find the actual command that is made from the '/' char to the first space
 		size_t endCommand = message.find_first_of(" ");
 		size_t sizeMessage = message.size();
+		std::string command;
 
-		std::string command = message.substr(1, endCommand);
-		//std::string attributes = message.substr(endCommand, sizeMessage);
+		if (endCommand == std::string::npos)
+			command = message.substr(1); // Take only the word without '/'
+		else
+			command = message.substr(1, endCommand - 1); // - 1 cause endCommand points to the space pos
 
 		if (command.compare(std::string("help")) == 0)
 		{
@@ -222,14 +236,50 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 		{
 			messagePackage << ClientMessage::C_List;
 		}
+		else if (command.compare(std::string("whisper")) == 0)
+		{
+			if (endCommand == std::string::npos)	// This means that the command doesnt have any attributes
+			{
+				PushCommandError();
+				return;
+			}
+
+			// String with the rest of the attributes of the command
+			std::string attributes = message.substr(endCommand);
+			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
+
+			size_t size_attributes = attributes.size();
+			size_t secondSpace = attributes.find_first_of(" ");
+
+			if (secondSpace == std::string::npos || size_attributes <= secondSpace) // This means that the command only has one attribute
+			{
+				PushCommandError();
+				return;
+			}
+
+			// Attribute till the "first" space
+			std::string to = attributes.substr(0, secondSpace);
+			std::string msg_whispered = attributes.substr(secondSpace + 1);
+
+			messagePackage << ClientMessage::C_Whisper;
+			messagePackage << playerName; // From
+			messagePackage << to;
+			messagePackage << msg_whispered;
+		}
 		else
 		{
-			chatLog.push_back(ChatEntry("Command doesn't exist. \nType /help to see the available commands.", 0.5f, 0.5f, 0.5f));
+			PushCommandError();
 			return;
 		}
 	}
 	
 
 	sendPacket(messagePackage, client_socket);
+}
+
+void ModuleNetworkingClient::PushCommandError()
+{
+	chatLog.push_back(ChatEntry("Command doesn't exist or is incomplete. \nType /help to see the available commands.", 0.5f, 0.5f, 0.5f));
+
 }
 

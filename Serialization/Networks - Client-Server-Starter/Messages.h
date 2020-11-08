@@ -9,6 +9,7 @@ enum class ClientMessage
 	ChatEntry,
 	C_Help,
 	C_List,
+	C_Whisper,
 	C_ChangeColor
 };
 
@@ -18,6 +19,7 @@ enum class ServerMessage
 	ChatDistribution,
 	Notification,
 	CommandResponse,
+	Whisper,
 	NameAlreadyExists
 };
 

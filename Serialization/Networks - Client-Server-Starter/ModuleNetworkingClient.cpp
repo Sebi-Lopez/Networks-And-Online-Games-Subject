@@ -166,13 +166,8 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> from;
 			
 		// Check if the user is muted
-		for (std::vector<std::string>::iterator it = mutedUsers.begin(); it != mutedUsers.end(); ++it)
-		{
-			if ((*it).compare(from) == 0)
-			{
-				return;
-			}
-		}
+		if (isMuted(from))
+			return;
 
 		std::string message;
 		packet >> message;
@@ -191,13 +186,8 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> from;
 
 		// Check if the user is muted
-		for (std::vector<std::string>::iterator it = mutedUsers.begin(); it != mutedUsers.end(); ++it)
-		{
-			if ((*it).compare(from) == 0)
-			{
-				return;
-			}
-		}
+		if (isMuted(from))
+			return;
 
 		std::string message;
 		packet >> message;
@@ -217,7 +207,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		if (exists)
 		{
 			mutedUsers.push_back(muted);
-			notification = "User " + muted + "is now muted";
+			notification = "User " + muted + " is now muted";
 		}
 		else
 		{
@@ -320,6 +310,40 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 			messagePackage << ClientMessage::C_Mute; 
 			messagePackage << to;
 		}
+		else if (command.compare(std::string("unmute")) == 0)
+		{
+			if (first_space == std::string::npos)	// This means that the command doesnt have any attributes
+			{
+				PushCommandError();
+				return;
+			}
+			std::string attributes = message.substr(first_space);
+			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
+
+			size_t size_attributes = attributes.size();
+			size_t secondSpace = attributes.find_first_of(" ");
+
+			if (secondSpace != std::string::npos) // This means it has 2 attributes 
+			{
+				PushCommandError();
+				return;
+			}
+
+			std::string user = attributes.substr(0, secondSpace);
+
+			std::string notification;
+			if (isMuted(user))
+			{
+				mutedUsers.remove(user);
+				notification = "User: " + user + " is now unmuted";
+				chatLog.push_back(ChatEntry(notification, 0.5f, 0.5f, 0.5f));
+			}
+			else
+			{
+				notification = "User: " + user + " is not muted or doesn't exist.\nFeel free to write /list to see the list of connected users.";
+				chatLog.push_back(ChatEntry(notification, 0.5f, 0.5f, 0.5f));
+			}
+		}
 		else if (command.compare(std::string("whisper")) == 0)
 		{
 			if (first_space == std::string::npos)	// This means that the command doesnt have any attributes
@@ -365,5 +389,18 @@ void ModuleNetworkingClient::PushCommandError()
 {
 	chatLog.push_back(ChatEntry("Command doesn't exist or is incomplete. \nType /help to see the available commands.", 0.5f, 0.5f, 0.5f));
 
+}
+
+bool ModuleNetworkingClient::isMuted(const std::string& user)
+{
+	// Check if the user is muted
+	for (std::list<std::string>::iterator it = mutedUsers.begin(); it != mutedUsers.end(); ++it)
+	{
+		if ((*it).compare(user) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 

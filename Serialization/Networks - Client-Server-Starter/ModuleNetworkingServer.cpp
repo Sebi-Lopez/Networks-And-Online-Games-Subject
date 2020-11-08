@@ -210,7 +210,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	{
 		OutputMemoryStream helpPackage; 
 		helpPackage << ServerMessage::CommandResponse;
-		helpPackage << "Here's the list of commands that you can use: \n/help\n/list\n/whisper [to] [message]\n/clear\n...";
+		helpPackage << "Here's the list of commands that you can use: \n/help\n/list\n/whisper [to] [message]\n/clear\n/mute [user]\n/unmute [user]...";
 		
 		sendPacket(helpPackage, socket);
 	}

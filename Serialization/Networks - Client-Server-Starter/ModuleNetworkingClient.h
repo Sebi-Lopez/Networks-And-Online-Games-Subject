@@ -48,6 +48,8 @@ private:
 
 	void PushCommandError(); 
 
+	bool isMuted(const std::string& user);
+
 	//////////////////////////////////////////////////////////////////////
 	// Client state
 	//////////////////////////////////////////////////////////////////////
@@ -70,7 +72,7 @@ private:
 
 	std::list<ChatEntry> chatLog; 
 
-	std::vector<std::string> mutedUsers; 
+	std::list<std::string> mutedUsers; 
 
 };
 

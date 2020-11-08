@@ -1,5 +1,9 @@
 #include "ModuleNetworkingServer.h"
 
+
+#include <random>
+
+
 //////////////////////////////////////////////////////////////////////
 // ModuleNetworkingServer public methods
 //////////////////////////////////////////////////////////////////////
@@ -136,6 +140,11 @@ void ModuleNetworkingServer::onSocketConnected(SOCKET socket, const sockaddr_in 
 	welcomePackage << ServerMessage::Welcome;
 	welcomePackage << "Server";
 	welcomePackage << " --------- Welcome to the CHAT ---------";
+
+	// Send 3 floats to set the users color - Random is set from 0.6 to 1 to try and get only bright colors. 
+	for (int i = 0; i < 3; ++i)
+		welcomePackage << 0.6f + ((rand() % 40) / 100.f);
+
 	sendPacket(welcomePackage, socket);
 }
 
@@ -166,7 +175,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		{
 			// Send notification that the name is taken 
 			OutputMemoryStream notification;
-			notification << ServerMessage::NameNotAvailable;
+			notification << ServerMessage::NameAlreadyExists;
 			sendPacket(notification, socket);
 
 			// Delete it from the connected sockets (it will be disconnected on its own)
@@ -183,20 +192,94 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 	if (clientMessage == ClientMessage::ChatEntry)
 	{
+		// Get Message Data
 		std::string from;
-		std::string message;
+		std::string message;		
+		float color[3];
+
 		packet >> from;
 		packet >> message;
+		for (int i = 0; i < 3; ++i)
+			packet >> color[i];
 
+		// Send message data to everyone
 		OutputMemoryStream chatPackage; 
 		chatPackage << ServerMessage::ChatDistribution; 
 		chatPackage << from; 
 		chatPackage << message;
 
+		for (int i = 0; i < 3; ++i)
+			chatPackage << color[i];
+
 		for (auto& connectedSocket : connectedSockets)
 		{
 			sendPacket(chatPackage, connectedSocket.socket);
 		}
+	}
+
+	if (clientMessage == ClientMessage::C_Help)
+	{
+		OutputMemoryStream helpPackage; 
+		helpPackage << ServerMessage::CommandResponse;
+		helpPackage << "Here's the list of commands that you can make: \n/help\n/list\n/whisper [to] [message]...";
+		
+		sendPacket(helpPackage, socket);
+	}
+
+	if (clientMessage == ClientMessage::C_List)
+	{
+		OutputMemoryStream listPackage;
+		listPackage << ServerMessage::CommandResponse;
+
+		// Make a string with the list of users
+		std::string user_list = "Connected Users:\n";
+		for (auto& connectedSocket : connectedSockets)
+		{
+			user_list += "- " + connectedSocket.playerName + "\n";
+		}
+		listPackage << user_list;
+
+		sendPacket(listPackage, socket);
+	}
+
+	if (clientMessage == ClientMessage::C_Whisper)
+	{
+		std::string to;
+		std::string msg;
+		std::string from;
+		packet >> from;
+		packet >> to;
+		packet >> msg;
+
+		OutputMemoryStream whisperPacket;
+		bool found = false; 
+
+		// Find the whispered and send the whisper
+		for (auto& connectedSocket : connectedSockets)
+		{
+			if (connectedSocket.playerName == to)
+			{
+				whisperPacket << ServerMessage::Whisper;
+				whisperPacket << from;
+				whisperPacket << msg;
+				sendPacket(whisperPacket, connectedSocket.socket);
+				found = true;
+				break;
+			}
+		}
+
+		// Send a response to the whisperer
+		OutputMemoryStream responsePacket;
+		responsePacket << ServerMessage::CommandResponse;
+		std::string response;
+
+		if (!found) 			
+			response = "Couldn't find " + to + ".\nType /list to get the list of all connected users.";
+		else					
+			response = "Whisper sent correctly to: " + to + ".\nWhispered: " + msg;
+
+		responsePacket << response;
+		sendPacket(responsePacket, socket);
 	}
 }
 

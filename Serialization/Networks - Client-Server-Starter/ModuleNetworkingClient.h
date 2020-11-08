@@ -44,7 +44,9 @@ private:
 
 	void ClearChat();
 
-	void SendChatMessage(std::string message);
+	void SendChatMessage(const std::string& message);
+
+	void PushCommandError(); 
 
 	//////////////////////////////////////////////////////////////////////
 	// Client state
@@ -61,7 +63,8 @@ private:
 
 	sockaddr_in serverAddress = {};
 	SOCKET client_socket = INVALID_SOCKET;
-
+	
+	float user_color[3] = { 0.5f, 0.5f, 0.5f };
 	std::string playerName;
 
 	std::list<ChatEntry> chatLog; 

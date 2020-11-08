@@ -89,8 +89,6 @@ bool ModuleNetworkingClient::gui()
 		}
 		ImGui::SameLine();
 		ImGui::Text("Logged in as: %s", playerName.c_str());
-		
-
 
 		for (std::list<ChatEntry>::iterator iter = chatLog.begin(); iter != chatLog.end(); iter++)
 		{
@@ -119,13 +117,19 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 
 	if (serverMessage == ServerMessage::Welcome)
 	{
-		std::string from; 
+		std::string from;
 		packet >> from;
 		std::string message;
 		packet >> message;
+
+		// Set User color
+		packet >> user_color[0];
+		packet >> user_color[1];
+		packet >> user_color[2];
+
 		chatLog.push_back(ChatEntry(from, message, 0.0f, 1.0f, 1.0f));
 	}
-	else if (serverMessage == ServerMessage::NameNotAvailable)
+	else if (serverMessage == ServerMessage::NameAlreadyExists)
 	{
 		// Show User that name is not available
 		LOG("Name is already taken. Pleas chose another one.");
@@ -139,16 +143,39 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> from;
 		std::string message;
 		packet >> message;
-		chatLog.push_back(ChatEntry(from, message, 1.0f, 1.0f, 0.0f));
+		chatLog.push_back(ChatEntry(from, message, 0.5f, 0.5f, 0.5f));
 	}
-
+	else if (serverMessage == ServerMessage::CommandResponse)
+	{
+		std::string message;
+		packet >> message;
+		chatLog.push_back(ChatEntry(message, 0.3f, 8.0f, 0.3f));
+	}
 	else if (serverMessage == ServerMessage::ChatDistribution)
 	{
 		std::string from; 
 		packet >> from;
 		std::string message;
 		packet >> message; 
+		
+		// Set User color
+		float r, g, b;
+		packet >> r;
+		packet >> g;
+		packet >> b;
+
+		chatLog.push_back(ChatEntry(from, message, r, g, b));
+	}
+	else if (serverMessage == ServerMessage::Whisper)
+	{
+		std::string from;
+		packet >> from;
+		std::string message;
+		packet >> message;
+		std::string notification = from + " whispered to you: ";
+		chatLog.push_back(ChatEntry(notification, 0.2f, 0.2f, 0.9f));
 		chatLog.push_back(ChatEntry(from, message));
+
 	}
 }
 
@@ -163,14 +190,14 @@ void ModuleNetworkingClient::PrintChatEntry(ChatEntry entry)
 	if (entry.from.empty() || entry.from == "Server")
 	{
 		// Messages from server are not printed who sends them
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g,entry.b, 255));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g,entry.b, 1.0f));
 		ImGui::Text("%s", entry.text.c_str());
 		ImGui::PopStyleColor();
 	}
 	else
 	{
 		// Print message SENDER with its color
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g, entry.b, 255));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g, entry.b, 1.0f));
 		ImGui::Text("%s:", entry.from.c_str());
 		ImGui::PopStyleColor();
 
@@ -185,12 +212,82 @@ void ModuleNetworkingClient::ClearChat()
 	chatLog.clear();
 }
 
-void ModuleNetworkingClient::SendChatMessage(std::string message)
+void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 {
-	OutputMemoryStream messagePackage; 
-	messagePackage << ClientMessage::ChatEntry;
-	messagePackage << playerName;
-	messagePackage << message;
+	OutputMemoryStream messagePackage;
+
+	if (message.at(0) != '/') {
+		// Normal message
+		messagePackage << ClientMessage::ChatEntry;
+		messagePackage << playerName;
+		messagePackage << message;
+		for (int i = 0; i < 3; ++i)
+			messagePackage << user_color[i];
+	}
+	else
+	{
+		// Find the actual command that is made from the '/' char to the first space
+		size_t endCommand = message.find_first_of(" ");
+		size_t sizeMessage = message.size();
+		std::string command;
+
+		if (endCommand == std::string::npos)
+			command = message.substr(1); // Take only the word without '/'
+		else
+			command = message.substr(1, endCommand - 1); // - 1 cause endCommand points to the space pos
+
+		if (command.compare(std::string("help")) == 0)
+		{
+			messagePackage << ClientMessage::C_Help;
+		}
+		else if (command.compare(std::string("list")) == 0)
+		{
+			messagePackage << ClientMessage::C_List;
+		}
+		else if (command.compare(std::string("whisper")) == 0)
+		{
+			if (endCommand == std::string::npos)	// This means that the command doesnt have any attributes
+			{
+				PushCommandError();
+				return;
+			}
+
+			// String with the rest of the attributes of the command
+			std::string attributes = message.substr(endCommand);
+			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
+
+			size_t size_attributes = attributes.size();
+			size_t secondSpace = attributes.find_first_of(" ");
+
+			if (secondSpace == std::string::npos || size_attributes <= secondSpace) // This means that the command only has one attribute
+			{
+				PushCommandError();
+				return;
+			}
+
+			// Attribute till the "first" space
+			std::string to = attributes.substr(0, secondSpace);
+			std::string msg_whispered = attributes.substr(secondSpace + 1);
+
+			messagePackage << ClientMessage::C_Whisper;
+			messagePackage << playerName; // From
+			messagePackage << to;
+			messagePackage << msg_whispered;
+		}
+		else
+		{
+			PushCommandError();
+			return;
+		}
+	}
+	
+
 	sendPacket(messagePackage, client_socket);
+}
+
+void ModuleNetworkingClient::PushCommandError()
+{
+	chatLog.push_back(ChatEntry("Command doesn't exist or is incomplete. \nType /help to see the available commands.", 0.5f, 0.5f, 0.5f));
+
 }
 

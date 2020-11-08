@@ -142,158 +142,170 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	ClientMessage clientMessage;
 	packet >> clientMessage; 
 
-	if (clientMessage == ClientMessage::Hello)
+	switch (clientMessage)
 	{
-		std::string playerName;
-		packet >> playerName;
-
-		if (isNameAvailable(playerName))
+		case ClientMessage::Hello:
 		{
+			std::string playerName;
+			packet >> playerName;
+
+			if (isNameAvailable(playerName))
+			{
+				for (auto& connectedSocket : connectedSockets)
+				{
+					if (connectedSocket.socket == socket)
+					{
+						connectedSocket.playerName = playerName;
+						SendWelcomePackage(socket);
+						NotifyAllConnectedUsers(playerName, NotificationType::NewUser);
+						break;
+					}
+				}
+			}
+			else
+			{
+				// Send notification that the name is taken 
+				OutputMemoryStream notification;
+				notification << ServerMessage::NameAlreadyExists;
+				sendPacket(notification, socket);
+
+				// Delete it from the connected sockets (it will be disconnected on its own)
+				for (auto it = connectedSockets.begin(); it != connectedSockets.end(); ++it)
+				{
+					if ((*it).socket == socket)
+					{
+						connectedSockets.erase(it);
+						break;
+					}
+				}
+			}
+		} break;
+
+		case ClientMessage::ChatEntry:
+		{
+			// Get Message Data
+			std::string from;
+			std::string message;
+			float color[3];
+
+			packet >> from;
+			packet >> message;
+			for (int i = 0; i < 3; ++i)
+				packet >> color[i];
+
+			// Send message data to everyone
+			OutputMemoryStream chatPackage;
+			chatPackage << ServerMessage::ChatDistribution;
+			chatPackage << from;
+			chatPackage << message;
+
+			for (int i = 0; i < 3; ++i)
+				chatPackage << color[i];
+
 			for (auto& connectedSocket : connectedSockets)
 			{
-				if (connectedSocket.socket == socket)
+				sendPacket(chatPackage, connectedSocket.socket);
+			}
+		} break;
+
+		case ClientMessage::C_Help:
+		{
+			OutputMemoryStream helpPackage;
+			helpPackage << ServerMessage::CommandResponse;
+			helpPackage << "Here's the list of commands that you can use: \n/help\n/list\n/whisper [to] [message]\n/clear\n/mute [user]\n/unmute [user]...";
+
+			sendPacket(helpPackage, socket);
+		} break;
+
+		case ClientMessage::C_List:
+		{
+			OutputMemoryStream listPackage;
+			listPackage << ServerMessage::CommandResponse;
+
+			// Make a string with the list of users
+			std::string user_list = "Connected Users:\n";
+			for (auto& connectedSocket : connectedSockets)
+			{
+				user_list += "- " + connectedSocket.playerName + "\n";
+			}
+			listPackage << user_list;
+
+			sendPacket(listPackage, socket);
+		} break;
+
+		case ClientMessage::C_Whisper:
+		{
+			std::string to;
+			std::string msg;
+			std::string from;
+			packet >> from;
+			packet >> to;
+			packet >> msg;
+
+			OutputMemoryStream whisperPacket;
+			bool found = false;
+
+			// Find the whispered and send the whisper
+			for (auto& connectedSocket : connectedSockets)
+			{
+				if (connectedSocket.playerName == to)
 				{
-					connectedSocket.playerName = playerName;
-					SendWelcomePackage(socket);
-					NotifyAllConnectedUsers(playerName, NotificationType::NewUser);
+					whisperPacket << ServerMessage::Whisper;
+					whisperPacket << from;
+					whisperPacket << msg;
+					sendPacket(whisperPacket, connectedSocket.socket);
+					found = true;
 					break;
 				}
 			}
-		}
-		else
-		{
-			// Send notification that the name is taken 
-			OutputMemoryStream notification;
-			notification << ServerMessage::NameAlreadyExists;
-			sendPacket(notification, socket);
 
-			// Delete it from the connected sockets (it will be disconnected on its own)
-			for (auto it = connectedSockets.begin(); it != connectedSockets.end(); ++it)
+			// Send a response to the whisperer
+			OutputMemoryStream responsePacket;
+			responsePacket << ServerMessage::CommandResponse;
+			std::string response;
+
+			if (!found)
+				response = "Couldn't find user: " + to + ".\nType /list to get the list of all connected users.";
+			else
+				response = "Whisper sent correctly to: " + to + ".\nWhispered: " + msg;
+
+			responsePacket << response;
+			sendPacket(responsePacket, socket);
+		} break;
+
+		case ClientMessage::C_Mute:
+		{
+			std::string to;
+			packet >> to;
+
+			OutputMemoryStream muteResponse;
+			muteResponse << ServerMessage::MuteResponse;
+
+			bool found = false;
+
+			for (auto& connectedSocket : connectedSockets)
 			{
-				if ((*it).socket == socket)
+				if (connectedSocket.playerName == to)
 				{
-					connectedSockets.erase(it);
+					found = true;
 					break;
 				}
 			}
-		}
-	}
 
-	if (clientMessage == ClientMessage::ChatEntry)
-	{
-		// Get Message Data
-		std::string from;
-		std::string message;		
-		float color[3];
+			muteResponse << found;
+			muteResponse << to;
 
-		packet >> from;
-		packet >> message;
-		for (int i = 0; i < 3; ++i)
-			packet >> color[i];
+			sendPacket(muteResponse, socket);
+		} break;
 
-		// Send message data to everyone
-		OutputMemoryStream chatPackage; 
-		chatPackage << ServerMessage::ChatDistribution; 
-		chatPackage << from; 
-		chatPackage << message;
-
-		for (int i = 0; i < 3; ++i)
-			chatPackage << color[i];
-
-		for (auto& connectedSocket : connectedSockets)
+		case ClientMessage::C_Kick:
 		{
-			sendPacket(chatPackage, connectedSocket.socket);
+
+		} break;
+
+		default: {
+			break;
 		}
-	}
-
-	if (clientMessage == ClientMessage::C_Help)
-	{
-		OutputMemoryStream helpPackage; 
-		helpPackage << ServerMessage::CommandResponse;
-		helpPackage << "Here's the list of commands that you can use: \n/help\n/list\n/whisper [to] [message]\n/clear\n/mute [user]\n/unmute [user]...";
-		
-		sendPacket(helpPackage, socket);
-	}
-
-	if (clientMessage == ClientMessage::C_List)
-	{
-		OutputMemoryStream listPackage;
-		listPackage << ServerMessage::CommandResponse;
-
-		// Make a string with the list of users
-		std::string user_list = "Connected Users:\n";
-		for (auto& connectedSocket : connectedSockets)
-		{
-			user_list += "- " + connectedSocket.playerName + "\n";
-		}
-		listPackage << user_list;
-
-		sendPacket(listPackage, socket);
-	}
-
-	if (clientMessage == ClientMessage::C_Whisper)
-	{
-		std::string to;
-		std::string msg;
-		std::string from;
-		packet >> from;
-		packet >> to;
-		packet >> msg;
-
-		OutputMemoryStream whisperPacket;
-		bool found = false; 
-
-		// Find the whispered and send the whisper
-		for (auto& connectedSocket : connectedSockets)
-		{
-			if (connectedSocket.playerName == to)
-			{
-				whisperPacket << ServerMessage::Whisper;
-				whisperPacket << from;
-				whisperPacket << msg;
-				sendPacket(whisperPacket, connectedSocket.socket);
-				found = true;
-				break;
-			}
-		}
-
-		// Send a response to the whisperer
-		OutputMemoryStream responsePacket;
-		responsePacket << ServerMessage::CommandResponse;
-		std::string response;
-
-		if (!found) 			
-			response = "Couldn't find user: " + to + ".\nType /list to get the list of all connected users.";
-		else					
-			response = "Whisper sent correctly to: " + to + ".\nWhispered: " + msg;
-
-		responsePacket << response;
-		sendPacket(responsePacket, socket);
-	}
-
-	if(clientMessage == ClientMessage::C_Mute)
-	{
-		std::string to;
-		packet >> to; 
-
-		OutputMemoryStream muteResponse; 
-		muteResponse << ServerMessage::MuteResponse; 
-
-		bool found = false; 
-
-		for (auto& connectedSocket : connectedSockets)
-		{
-			if (connectedSocket.playerName == to)
-			{
-				found = true; 
-				break;
-			}
-		}
-
-		muteResponse << found;
-		muteResponse << to; 
-
-		sendPacket(muteResponse, socket);
 	}
 }
 

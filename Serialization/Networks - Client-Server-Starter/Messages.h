@@ -11,6 +11,7 @@ enum class ClientMessage
 	C_List,
 	C_Whisper,
 	C_Mute,
+	C_Kick
 };
 
 enum class ServerMessage

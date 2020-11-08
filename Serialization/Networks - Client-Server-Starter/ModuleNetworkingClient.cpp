@@ -84,8 +84,8 @@ bool ModuleNetworkingClient::gui()
 		if (ImGui::Button("Log Out"))
 		{
 			disconnect();
-			state = ClientState::Stopped;
 			ClearChat();
+			state = ClientState::Stopped;
 		}
 		ImGui::SameLine();
 		ImGui::Text("Username: %s", playerName.c_str());
@@ -114,7 +114,9 @@ bool ModuleNetworkingClient::gui()
 		{
 			SendChatMessage(user_message);
 		}
-		ImGui::SetKeyboardFocusHere();
+
+		if(!ImGui::IsAnyItemActive())
+			ImGui::SetKeyboardFocusHere();
 
 		ImGui::End();
 	}
@@ -127,93 +129,105 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	ServerMessage serverMessage;
 	packet >> serverMessage; 
 
-	if (serverMessage == ServerMessage::Welcome)
+	switch (serverMessage)
 	{
-		std::string from;
-		packet >> from;
-		std::string message;
-		packet >> message;
-
-		// Set User color
-		packet >> user_color[0];
-		packet >> user_color[1];
-		packet >> user_color[2];
-
-		chatLog.push_back(ChatEntry(from, message, 0.0f, 1.0f, 1.0f));
-	}
-	else if (serverMessage == ServerMessage::NameAlreadyExists)
-	{
-		// Show User that name is not available
-		state = ClientState::Failed;
-	}
-	else if (serverMessage == ServerMessage::Notification)
-	{
-		std::string from;
-		packet >> from;
-		std::string message;
-		packet >> message;
-		chatLog.push_back(ChatEntry(from, message, 0.5f, 0.5f, 0.5f));
-	}
-	else if (serverMessage == ServerMessage::CommandResponse)
-	{
-		std::string message;
-		packet >> message;
-		chatLog.push_back(ChatEntry(message, 0.3f, 8.0f, 0.3f));
-	}
-	else if (serverMessage == ServerMessage::ChatDistribution)
-	{
-		std::string from; 
-		packet >> from;
-			
-		// Check if the user is muted
-		if (isMuted(from))
-			return;
-
-		std::string message;
-		packet >> message;
-
-		// Set User color
-		float r, g, b;
-		packet >> r;
-		packet >> g;
-		packet >> b;
-		
-		chatLog.push_back(ChatEntry(from, message, r, g, b));
-	}
-	else if (serverMessage == ServerMessage::Whisper)
-	{
-		std::string from;
-		packet >> from;
-
-		// Check if the user is muted
-		if (isMuted(from))
-			return;
-
-		std::string message;
-		packet >> message;
-		std::string notification = from + " whispered to you: ";
-		chatLog.push_back(ChatEntry(notification, 0.2f, 0.2f, 0.9f));
-		chatLog.push_back(ChatEntry(from, message));
-
-	}
-	else if (serverMessage == ServerMessage::MuteResponse)
-	{
-		bool exists = false;
-		std::string muted;
-		packet >> exists;
-		packet >> muted;
-
-		std::string notification;
-		if (exists)
+		case ServerMessage::Welcome:
 		{
-			mutedUsers.push_back(muted);
-			notification = "User " + muted + " is now muted";
-		}
-		else
+			std::string from;
+			packet >> from;
+			std::string message;
+			packet >> message;
+
+			// Set User color
+			packet >> user_color[0];
+			packet >> user_color[1];
+			packet >> user_color[2];
+
+			chatLog.push_back(ChatEntry(from, message, 0.0f, 1.0f, 1.0f));
+		} break;
+		 
+		case ServerMessage::NameAlreadyExists:
 		{
-			notification = "Could not find user: " + muted + ".\n Type /list to see the list of connected users"; 
+			// Show User that name is not available
+			state = ClientState::Failed;
+		} break;
+
+		case ServerMessage::Notification:
+		{
+			std::string from;
+			packet >> from;
+			std::string message;
+			packet >> message;
+			chatLog.push_back(ChatEntry(from, message, 0.5f, 0.5f, 0.5f));
+		} break;
+
+		case ServerMessage::CommandResponse:
+		{
+			std::string message;
+			packet >> message;
+			chatLog.push_back(ChatEntry(message, 0.3f, 8.0f, 0.3f));
+		} break;
+
+		case ServerMessage::ChatDistribution:
+		{
+			std::string from;
+			packet >> from;
+
+			// Check if the user is muted
+			if (isMuted(from))
+				return;
+
+			std::string message;
+			packet >> message;
+
+			// Set User color
+			float r, g, b;
+			packet >> r;
+			packet >> g;
+			packet >> b;
+
+			chatLog.push_back(ChatEntry(from, message, r, g, b));
+		} break;
+
+		case ServerMessage::Whisper:
+		{
+			std::string from;
+			packet >> from;
+
+			// Check if the user is muted
+			if (isMuted(from))
+				return;
+
+			std::string message;
+			packet >> message;
+			std::string notification = from + " whispered to you: ";
+			chatLog.push_back(ChatEntry(notification, 0.2f, 0.2f, 0.9f));
+			chatLog.push_back(ChatEntry(from, message));
+		} break;
+
+		case ServerMessage::MuteResponse:
+		{
+			bool exists = false;
+			std::string muted;
+			packet >> exists;
+			packet >> muted;
+
+			std::string notification;
+			if (exists)
+			{
+				mutedUsers.push_back(muted);
+				notification = "User " + muted + " is now muted";
+			}
+			else
+			{
+				notification = "Could not find user: " + muted + ".\n Type /list to see the list of connected users";
+			}
+			chatLog.push_back(ChatEntry(notification, 0.5f, 0.5f, 0.5f));
+		} break;
+
+		default: {
+			break;
 		}
-		chatLog.push_back(ChatEntry(notification, 0.5f, 0.5f, 0.5f));
 	}
 }
 
@@ -252,6 +266,9 @@ void ModuleNetworkingClient::ClearChat()
 
 void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 {
+	if (message.empty())
+		return;
+
 	OutputMemoryStream messagePackage;
 
 	if (message.at(0) != '/') {
@@ -293,19 +310,19 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 				PushCommandError();
 				return;
 			}
-			std::string attributes = message.substr(first_space);
+			std::string attributes = message.substr(first_space);  // Keep only from first_space till the end
 			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
 
-			size_t size_attributes = attributes.size();
 			size_t secondSpace = attributes.find_first_of(" ");
 
-			if(secondSpace != std::string::npos) // This means it has 2 attributes 
+			if(secondSpace != std::string::npos) // This means it has 2 attributes because there's a second space
 			{
 				PushCommandError();
 				return;
 			}
 
-			std::string to = attributes.substr(0, secondSpace);
+			// Since it only has one attribute, it must be the user
+			std::string to = attributes;
 
 			messagePackage << ClientMessage::C_Mute; 
 			messagePackage << to;
@@ -317,19 +334,19 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 				PushCommandError();
 				return;
 			}
-			std::string attributes = message.substr(first_space);
+			std::string attributes = message.substr(first_space); // Keep only from first_space till the end
 			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
 
-			size_t size_attributes = attributes.size();
 			size_t secondSpace = attributes.find_first_of(" ");
 
-			if (secondSpace != std::string::npos) // This means it has 2 attributes 
+			if (secondSpace != std::string::npos) // This means it has 2 attributes because there's a second space
 			{
 				PushCommandError();
 				return;
 			}
 
-			std::string user = attributes.substr(0, secondSpace);
+			// Since it only has one attribute, it must be the user
+			std::string user = attributes;
 
 			std::string notification;
 			if (isMuted(user))
@@ -343,6 +360,30 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 				notification = "User: " + user + " is not muted or doesn't exist.\nFeel free to write /list to see the list of connected users.";
 				chatLog.push_back(ChatEntry(notification, 0.5f, 0.5f, 0.5f));
 			}
+		}
+		else if (command.compare(std::string("kick")) == 0)
+		{
+			if (first_space == std::string::npos)	// This means that the command doesnt have any attributes
+			{
+				PushCommandError();
+				return;
+			}
+			std::string attributes = message.substr(first_space);  // Keep only from first_space till the end
+			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
+
+			size_t secondSpace = attributes.find_first_of(" ");
+
+			if (secondSpace != std::string::npos) // This means it has 2 attributes because there's a second space
+			{
+				PushCommandError();
+				return;
+			}
+
+			std::string user = attributes;
+
+			messagePackage << ClientMessage::C_Kick;
+			messagePackage << user;
+			messagePackage << playerName;
 		}
 		else if (command.compare(std::string("whisper")) == 0)
 		{

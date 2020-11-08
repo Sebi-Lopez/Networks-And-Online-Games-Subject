@@ -259,7 +259,7 @@ void ModuleNetworkingClient::PrintChatEntry(ChatEntry entry)
 	{
 		// Messages from server are not printed who sends them
 		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g,entry.b, 1.0f));
-		ImGui::Text("%s", entry.text.c_str());
+		ImGui::TextWrapped("%s", entry.text.c_str());
 		ImGui::PopStyleColor();
 	}
 	else
@@ -271,7 +271,7 @@ void ModuleNetworkingClient::PrintChatEntry(ChatEntry entry)
 
 		// Print the actual message
 		ImGui::SameLine();
-		ImGui::Text("%s", entry.text.c_str());
+		ImGui::TextWrapped("%s", entry.text.c_str());
 	}
 }
 
@@ -370,6 +370,12 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 			// Since it only has one attribute, it must be the user
 			std::string user = attributes;
 
+			if (user == playerName)
+			{
+				chatLog.push_back(ChatEntry("Whaaaat??? Now you can talk????!", 0.5f, 0.5f, 0.5f));
+				return;
+			}
+
 			std::string notification;
 			if (isMuted(user))
 			{
@@ -436,6 +442,13 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 
 			// Attribute till the "first" space
 			std::string to = attributes.substr(0, secondSpace);
+
+			if (to == playerName)
+			{
+				chatLog.push_back(ChatEntry("If you want to whisper yourself, try to speak really low. :)", 0.5f, 0.5f, 0.5f));
+				return;
+			}
+
 			std::string msg_whispered = attributes.substr(secondSpace + 1);
 
 			messagePackage << ClientMessage::C_Whisper;

@@ -157,7 +157,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 					{
 						connectedSocket.playerName = playerName;
 						SendWelcomePackage(socket);
-						NotifyAllConnectedUsers(playerName, NotificationType::NewUser);
+						NotifyAllConnectedUsers(playerName, NotificationType::NewUser, socket);
 						break;
 					}
 				}
@@ -354,14 +354,14 @@ void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)
 		auto &connectedSocket = *it;
 		if (connectedSocket.socket == socket)
 		{
-			NotifyAllConnectedUsers(connectedSocket.playerName, NotificationType::DisconnectedUser);
 			connectedSockets.erase(it);
+			NotifyAllConnectedUsers(connectedSocket.playerName, NotificationType::DisconnectedUser);
 			break;
 		}
 	}
 }
 
-void ModuleNetworkingServer::NotifyAllConnectedUsers(const std::string newUser, NotificationType notificationType)
+void ModuleNetworkingServer::NotifyAllConnectedUsers(const std::string newUser, NotificationType notificationType, const SOCKET excpSocket)
 {
 	OutputMemoryStream notificationPackage; 
 
@@ -387,6 +387,9 @@ void ModuleNetworkingServer::NotifyAllConnectedUsers(const std::string newUser, 
 
 	for (auto& connectedSocket : connectedSockets)
 	{
+		if (connectedSocket.socket == excpSocket)
+			continue;
+
 		sendPacket(notificationPackage, connectedSocket.socket);
 	}
 }

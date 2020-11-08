@@ -45,7 +45,7 @@ private:
 
 	//////////////////////////////////////////////////////////////////////
 
-	void NotifyAllConnectedUsers(const std::string newUser, NotificationType notificationType);
+	void NotifyAllConnectedUsers(const std::string newUser, NotificationType notificationType, const SOCKET excpSocket = INVALID_SOCKET);
 	
 	bool isNameAvailable(const std::string newName);
 

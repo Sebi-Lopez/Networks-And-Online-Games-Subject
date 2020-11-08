@@ -6,7 +6,10 @@
 enum class ClientMessage
 {
 	Hello,
-	ChatEntry
+	ChatEntry,
+	C_Help,
+	C_List,
+	C_ChangeColor
 };
 
 enum class ServerMessage
@@ -14,6 +17,7 @@ enum class ServerMessage
 	Welcome,
 	ChatDistribution,
 	Notification,
+	CommandResponse,
 	NameAlreadyExists
 };
 

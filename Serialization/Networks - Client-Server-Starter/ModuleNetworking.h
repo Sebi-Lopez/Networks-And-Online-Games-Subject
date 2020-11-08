@@ -5,8 +5,8 @@ struct ChatEntry
 	ChatEntry(std::string from, std::string text, float r = 1.f, float g = 1.f, float b = 1.f) : 
 		from(from), text(text), r(r), g(g), b(b) {}
 
-	ChatEntry(std::string text) :
-		text(text) {}
+	ChatEntry(std::string text, float r = 1.f, float g = 1.f, float b = 1.f) :
+		text(text), r(r), g(g), b(b) {}
 
 	std::string from;
 	std::string text;

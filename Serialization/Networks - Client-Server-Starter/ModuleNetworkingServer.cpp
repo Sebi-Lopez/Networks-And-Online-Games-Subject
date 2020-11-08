@@ -198,6 +198,31 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 			sendPacket(chatPackage, connectedSocket.socket);
 		}
 	}
+
+	if (clientMessage == ClientMessage::C_Help)
+	{
+		OutputMemoryStream helpPackage; 
+		helpPackage << ServerMessage::CommandResponse;
+		helpPackage << "Here's the list of commands that you can make: \n/help\n/list\n...";
+		
+		sendPacket(helpPackage, socket);
+	}
+
+	if (clientMessage == ClientMessage::C_List)
+	{
+		OutputMemoryStream listPackage;
+		listPackage << ServerMessage::CommandResponse;
+
+		// Make a string with the list of users
+		std::string user_list = "Connected Users:\n";
+		for (auto& connectedSocket : connectedSockets)
+		{
+			user_list += "- " + connectedSocket.playerName + "\n";
+		}
+		listPackage << user_list;
+
+		sendPacket(listPackage, socket);
+	}
 }
 
 void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)

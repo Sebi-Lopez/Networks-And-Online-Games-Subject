@@ -135,9 +135,14 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		packet >> from;
 		std::string message;
 		packet >> message;
-		chatLog.push_back(ChatEntry(from, message, 1.0f, 1.0f, 0.0f));
+		chatLog.push_back(ChatEntry(from, message, 0.5f, 0.5f, 0.5f));
 	}
-
+	else if (serverMessage == ServerMessage::CommandResponse)
+	{
+		std::string message;
+		packet >> message;
+		chatLog.push_back(ChatEntry(message, 0.3f, 8.0f, 0.3f));
+	}
 	else if (serverMessage == ServerMessage::ChatDistribution)
 	{
 		std::string from; 
@@ -166,14 +171,14 @@ void ModuleNetworkingClient::PrintChatEntry(ChatEntry entry)
 	if (entry.from.empty() || entry.from == "Server")
 	{
 		// Messages from server are not printed who sends them
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g,entry.b, 255));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g,entry.b, 1.0f));
 		ImGui::Text("%s", entry.text.c_str());
 		ImGui::PopStyleColor();
 	}
 	else
 	{
 		// Print message SENDER with its color
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g, entry.b, 255));
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(entry.r, entry.g, entry.b, 1.0f));
 		ImGui::Text("%s:", entry.from.c_str());
 		ImGui::PopStyleColor();
 
@@ -188,14 +193,42 @@ void ModuleNetworkingClient::ClearChat()
 	chatLog.clear();
 }
 
-void ModuleNetworkingClient::SendChatMessage(std::string message)
+void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 {
-	OutputMemoryStream messagePackage; 
-	messagePackage << ClientMessage::ChatEntry;
-	messagePackage << playerName;
-	messagePackage << message;
-	for (int i = 0; i < 3; ++i)
-		messagePackage << user_color[i];
+	OutputMemoryStream messagePackage;
+
+	if (message.at(0) != '/') {
+		// Normal message
+		messagePackage << ClientMessage::ChatEntry;
+		messagePackage << playerName;
+		messagePackage << message;
+		for (int i = 0; i < 3; ++i)
+			messagePackage << user_color[i];
+	}
+	else
+	{
+		// Find the actual command that is made from the '/' char to the first space
+		size_t endCommand = message.find_first_of(" ");
+		size_t sizeMessage = message.size();
+
+		std::string command = message.substr(1, endCommand);
+		//std::string attributes = message.substr(endCommand, sizeMessage);
+
+		if (command.compare(std::string("help")) == 0)
+		{
+			messagePackage << ClientMessage::C_Help;
+		}
+		else if (command.compare(std::string("list")) == 0)
+		{
+			messagePackage << ClientMessage::C_List;
+		}
+		else
+		{
+			chatLog.push_back(ChatEntry("Command doesn't exist. \nType /help to see the available commands.", 0.5f, 0.5f, 0.5f));
+			return;
+		}
+	}
+	
 
 	sendPacket(messagePackage, client_socket);
 }

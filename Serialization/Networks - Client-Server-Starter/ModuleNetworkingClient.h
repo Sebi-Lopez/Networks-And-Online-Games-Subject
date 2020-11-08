@@ -44,7 +44,7 @@ private:
 
 	void ClearChat();
 
-	void SendChatMessage(std::string message);
+	void SendChatMessage(const std::string& message);
 
 	//////////////////////////////////////////////////////////////////////
 	// Client state

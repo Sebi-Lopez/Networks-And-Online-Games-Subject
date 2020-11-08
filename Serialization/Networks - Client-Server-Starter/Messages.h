@@ -22,11 +22,13 @@ enum class ServerMessage
 	CommandResponse,
 	Whisper,
 	MuteResponse,
+	Kick,
 	NameAlreadyExists
 };
 
 enum class NotificationType
 {
 	NewUser,
-	DisconnectedUser
+	DisconnectedUser,
+	Kicked
 };

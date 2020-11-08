@@ -300,6 +300,43 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 
 		case ClientMessage::C_Kick:
 		{
+			std::string user;
+			std::string kicker; 
+			packet >> user;
+			packet >> kicker; 
+
+			bool found = false;
+			for (auto it = connectedSockets.begin(); it != connectedSockets.end(); ++it)
+			{
+				if ((*it).playerName == user)
+				{
+					found = true; 
+
+					// Send the actual kick;
+					OutputMemoryStream kick;
+					kick << ServerMessage::Kick;
+					sendPacket(kick, (*it).socket);
+
+					// Send message to everyone that hes been out. 
+					NotifyAllConnectedUsers((*it).playerName, NotificationType::Kicked);
+					// Remove him from the connected sockets. He will be disconnected by himself. 
+					connectedSockets.erase(it);
+					break;
+				}
+			}
+
+			OutputMemoryStream kickNotification;
+			kickNotification << ServerMessage::CommandResponse;
+
+			std::string notification; 
+
+			if (found)
+				notification = "Kicked '" + user + "' successfully. He won't bother you anymore!";
+			else
+				notification = "Couldn't find the user '" + user + "'. Feel free to type /list to see the connected users";
+
+			kickNotification << notification;
+			sendPacket(kickNotification, socket);
 
 		} break;
 
@@ -342,6 +379,8 @@ void ModuleNetworkingServer::NotifyAllConnectedUsers(const std::string newUser, 
 	case NotificationType::DisconnectedUser:
 		notificationMsg = newUser + " left the chat";
 		break;
+	case NotificationType::Kicked:
+		notificationMsg = newUser + " has been kicked out! Careful, you can be the next one.";
 	}
 
 	notificationPackage << notificationMsg;

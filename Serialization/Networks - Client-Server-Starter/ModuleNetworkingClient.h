@@ -59,7 +59,8 @@ private:
 		Stopped,
 		Start,
 		Logging,
-		Failed
+		Failed,
+		Kicked
 	};
 
 	ClientState state = ClientState::Stopped;

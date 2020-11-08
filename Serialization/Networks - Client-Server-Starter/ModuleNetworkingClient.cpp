@@ -101,6 +101,17 @@ bool ModuleNetworkingClient::gui()
 			return true;
 		}
 
+		if (state == ClientState::Kicked)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.f, 0.f, 1.0f));
+			ImGui::Text("******** SOMEONE KICKED YOU FROM THE CHAT ********");
+			ImGui::PopStyleColor();
+			ImGui::Text("**** You pissed someone off. Be carefull with your actions ****");
+
+			ImGui::End();
+			return true;
+		}
+
 		for (std::list<ChatEntry>::iterator iter = chatLog.begin(); iter != chatLog.end(); iter++)
 		{
 			PrintChatEntry((*iter));
@@ -225,6 +236,11 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 			chatLog.push_back(ChatEntry(notification, 0.5f, 0.5f, 0.5f));
 		} break;
 
+		case ServerMessage::Kick:
+		{
+			state = ClientState::Kicked;
+		} break;
+
 		default: {
 			break;
 		}
@@ -324,6 +340,12 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 			// Since it only has one attribute, it must be the user
 			std::string to = attributes;
 
+			if (to == playerName)
+			{
+				chatLog.push_back(ChatEntry("You can't mute yourself, silly ;).", 0.5f, 0.5f, 0.5f));
+				return;
+			}
+
 			messagePackage << ClientMessage::C_Mute; 
 			messagePackage << to;
 		}
@@ -380,6 +402,12 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 			}
 
 			std::string user = attributes;
+
+			if (user == playerName)
+			{
+				chatLog.push_back(ChatEntry("If you want to kick yourself, you can use the avobe button 'Log Out'. Don't hurt yourself.",0.5f, 0.5f, 0.5f));
+				return;
+			}
 
 			messagePackage << ClientMessage::C_Kick;
 			messagePackage << user;

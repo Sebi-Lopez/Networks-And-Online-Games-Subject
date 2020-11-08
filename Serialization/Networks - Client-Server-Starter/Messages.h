@@ -10,7 +10,7 @@ enum class ClientMessage
 	C_Help,
 	C_List,
 	C_Whisper,
-	C_ChangeColor
+	C_Mute,
 };
 
 enum class ServerMessage
@@ -20,6 +20,7 @@ enum class ServerMessage
 	Notification,
 	CommandResponse,
 	Whisper,
+	MuteResponse,
 	NameAlreadyExists
 };
 

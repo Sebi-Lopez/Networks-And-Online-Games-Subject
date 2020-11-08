@@ -164,27 +164,66 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 	{
 		std::string from; 
 		packet >> from;
+			
+		// Check if the user is muted
+		for (std::vector<std::string>::iterator it = mutedUsers.begin(); it != mutedUsers.end(); ++it)
+		{
+			if ((*it).compare(from) == 0)
+			{
+				return;
+			}
+		}
+
 		std::string message;
-		packet >> message; 
-		
+		packet >> message;
+
 		// Set User color
 		float r, g, b;
 		packet >> r;
 		packet >> g;
 		packet >> b;
-
+		
 		chatLog.push_back(ChatEntry(from, message, r, g, b));
 	}
 	else if (serverMessage == ServerMessage::Whisper)
 	{
 		std::string from;
 		packet >> from;
+
+		// Check if the user is muted
+		for (std::vector<std::string>::iterator it = mutedUsers.begin(); it != mutedUsers.end(); ++it)
+		{
+			if ((*it).compare(from) == 0)
+			{
+				return;
+			}
+		}
+
 		std::string message;
 		packet >> message;
 		std::string notification = from + " whispered to you: ";
 		chatLog.push_back(ChatEntry(notification, 0.2f, 0.2f, 0.9f));
 		chatLog.push_back(ChatEntry(from, message));
 
+	}
+	else if (serverMessage == ServerMessage::MuteResponse)
+	{
+		bool exists = false;
+		std::string muted;
+		packet >> exists;
+		packet >> muted;
+
+		std::string notification;
+		if (exists)
+		{
+			mutedUsers.push_back(muted);
+			notification = "User " + muted + "is now muted";
+		}
+		else
+		{
+			notification = "Could not find user: " + muted + ".\n Type /list to see the list of connected users"; 
+		}
+		chatLog.push_back(ChatEntry(notification, 0.5f, 0.5f, 0.5f));
 	}
 }
 
@@ -256,6 +295,30 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 		else if (command.compare(std::string("clear")) == 0 && first_space == std::string::npos)
 		{
 			ClearChat();
+		}
+		else if (command.compare(std::string("mute")) == 0 )
+		{
+			if (first_space == std::string::npos)	// This means that the command doesnt have any attributes
+			{
+				PushCommandError();
+				return;
+			}
+			std::string attributes = message.substr(first_space);
+			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
+
+			size_t size_attributes = attributes.size();
+			size_t secondSpace = attributes.find_first_of(" ");
+
+			if(secondSpace != std::string::npos) // This means it has 2 attributes 
+			{
+				PushCommandError();
+				return;
+			}
+
+			std::string to = attributes.substr(0, secondSpace);
+
+			messagePackage << ClientMessage::C_Mute; 
+			messagePackage << to;
 		}
 		else if (command.compare(std::string("whisper")) == 0)
 		{

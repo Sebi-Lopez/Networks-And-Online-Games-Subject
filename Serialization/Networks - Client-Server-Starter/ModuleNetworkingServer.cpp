@@ -270,6 +270,31 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		responsePacket << response;
 		sendPacket(responsePacket, socket);
 	}
+
+	if(clientMessage == ClientMessage::C_Mute)
+	{
+		std::string to;
+		packet >> to; 
+
+		OutputMemoryStream muteResponse; 
+		muteResponse << ServerMessage::MuteResponse; 
+
+		bool found = false; 
+
+		for (auto& connectedSocket : connectedSockets)
+		{
+			if (connectedSocket.playerName == to)
+			{
+				found = true; 
+				break;
+			}
+		}
+
+		muteResponse << found;
+		muteResponse << to; 
+
+		sendPacket(muteResponse, socket);
+	}
 }
 
 void ModuleNetworkingServer::onSocketDisconnected(SOCKET socket)

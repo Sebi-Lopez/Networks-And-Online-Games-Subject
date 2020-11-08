@@ -69,5 +69,8 @@ private:
 	std::string playerName;
 
 	std::list<ChatEntry> chatLog; 
+
+	std::vector<std::string> mutedUsers; 
+
 };
 

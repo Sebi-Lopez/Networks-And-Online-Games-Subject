@@ -182,7 +182,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 		{
 			std::string message;
 			packet >> message;
-			chatLog.push_back(ChatEntry(message, 0.3f, 8.0f, 0.3f));
+			chatLog.push_back(ChatEntry(message, 0.5f, 8.0f, 0.5f));
 		} break;
 
 		case ServerMessage::ChatDistribution:
@@ -218,7 +218,7 @@ void ModuleNetworkingClient::onSocketReceivedData(SOCKET socket, const InputMemo
 			std::string message;
 			packet >> message;
 			std::string notification = from + " whispered to you: ";
-			chatLog.push_back(ChatEntry(notification, 0.2f, 0.2f, 0.9f));
+			chatLog.push_back(ChatEntry(notification, 0.1f, 0.5f, 1.f));
 			chatLog.push_back(ChatEntry(from, message));
 		} break;
 
@@ -330,6 +330,12 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 			if (first_attribute.empty() || !second_attribute.empty())
 			{
 				PushCommandError();
+				return;
+			}
+
+			if (first_attribute == playerName)
+			{
+				chatLog.push_back(ChatEntry("You can't mute yourself, silly ;).", 0.5f, 0.5f, 0.5f));
 				return;
 			}
 

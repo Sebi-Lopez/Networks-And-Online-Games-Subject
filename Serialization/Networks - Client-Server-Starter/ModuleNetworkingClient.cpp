@@ -235,33 +235,37 @@ void ModuleNetworkingClient::SendChatMessage(const std::string& message)
 	else
 	{
 		// Find the actual command that is made from the '/' char to the first space
-		size_t endCommand = message.find_first_of(" ");
+		size_t first_space = message.find_first_of(" ");
 		size_t sizeMessage = message.size();
 		std::string command;
 
-		if (endCommand == std::string::npos)
-			command = message.substr(1); // Take only the word without '/'
+		if (first_space == std::string::npos) // Case there's no space 
+			command = message.substr(1); // Take the whole message without the first char: '/'
 		else
-			command = message.substr(1, endCommand - 1); // - 1 cause endCommand points to the space pos
+			command = message.substr(1, first_space - 1); // - 1 cause endCommand points to the space pos
 
-		if (command.compare(std::string("help")) == 0)
+		if (command.compare(std::string("help")) == 0 && first_space == std::string::npos)
 		{
 			messagePackage << ClientMessage::C_Help;
 		}
-		else if (command.compare(std::string("list")) == 0)
+		else if (command.compare(std::string("list")) == 0 && first_space == std::string::npos)
 		{
 			messagePackage << ClientMessage::C_List;
 		}
+		else if (command.compare(std::string("clear")) == 0 && first_space == std::string::npos)
+		{
+			ClearChat();
+		}
 		else if (command.compare(std::string("whisper")) == 0)
 		{
-			if (endCommand == std::string::npos)	// This means that the command doesnt have any attributes
+			if (first_space == std::string::npos)	// This means that the command doesnt have any attributes
 			{
 				PushCommandError();
 				return;
 			}
 
 			// String with the rest of the attributes of the command
-			std::string attributes = message.substr(endCommand);
+			std::string attributes = message.substr(first_space);
 			attributes = attributes.substr(1); // The first character is a space, so we erase it; 
 
 			size_t size_attributes = attributes.size();

@@ -210,7 +210,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 	{
 		OutputMemoryStream helpPackage; 
 		helpPackage << ServerMessage::CommandResponse;
-		helpPackage << "Here's the list of commands that you can use: \n/help\n/list\n/whisper [to] [message]...";
+		helpPackage << "Here's the list of commands that you can use: \n/help\n/list\n/whisper [to] [message]\n/clear\n...";
 		
 		sendPacket(helpPackage, socket);
 	}
@@ -263,7 +263,7 @@ void ModuleNetworkingServer::onSocketReceivedData(SOCKET socket, const InputMemo
 		std::string response;
 
 		if (!found) 			
-			response = "Couldn't find " + to + ".\nType /list to get the list of all connected users.";
+			response = "Couldn't find user: " + to + ".\nType /list to get the list of all connected users.";
 		else					
 			response = "Whisper sent correctly to: " + to + ".\nWhispered: " + msg;
 
@@ -331,7 +331,7 @@ void ModuleNetworkingServer::SendWelcomePackage(SOCKET socket)
 	OutputMemoryStream welcomePackage;
 	welcomePackage << ServerMessage::Welcome;
 	welcomePackage << "Server";
-	welcomePackage << " --------- Welcome to the CHAT ---------";
+	welcomePackage << "      --------- Welcome to the CHAT ---------\nFeel free to type /help to see the command list.";
 
 	// Send 3 floats to set the users color - Random is set from 0.6 to 1 to try and get only bright colors. 
 	for (int i = 0; i < 3; ++i)

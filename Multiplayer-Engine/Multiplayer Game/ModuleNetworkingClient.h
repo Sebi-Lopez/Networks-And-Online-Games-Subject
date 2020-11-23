@@ -86,7 +86,11 @@ private:
 
 	// TODO(you): UDP virtual connection lab session
 
+	void CheckVirtualConnection();
+	void SendPing();
 
+	float timeSinceLastPingSent = 0.0f;
+	float lastPingRecieved = FLT_MAX;
 
 	//////////////////////////////////////////////////////////////////////
 	// Replication

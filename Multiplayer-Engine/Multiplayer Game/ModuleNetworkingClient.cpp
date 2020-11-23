@@ -129,6 +129,11 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 	}
 	else if (state == ClientState::Connected)
 	{
+		if (message == ServerMessage::Ping)
+		{
+			lastPingRecieved = Time.time;
+			//LOG("Recieved ping from server");
+		}
 		// TODO(you): World state replication lab session
 
 		// TODO(you): Reliability on top of UDP lab session
@@ -204,6 +209,8 @@ void ModuleNetworkingClient::onUpdate()
 			sendPacket(packet, serverAddress);
 		}
 
+		CheckVirtualConnection();
+
 		// TODO(you): Latency management lab session
 
 		// Update camera for player
@@ -239,4 +246,30 @@ void ModuleNetworkingClient::onDisconnect()
 	}
 
 	App->modRender->cameraPosition = {};
+}
+
+void ModuleNetworkingClient::CheckVirtualConnection()
+{
+	if (Time.time - lastPingRecieved >= DISCONNECT_TIMEOUT_SECONDS)
+	{
+		LOG("Server stopped sending pings, we disconnect.");
+		disconnect();
+	}
+
+	timeSinceLastPingSent += Time.deltaTime;
+	if (timeSinceLastPingSent >= PING_INTERVAL_SECONDS)
+	{
+		SendPing();
+		timeSinceLastPingSent = 0.0f;
+	}	
+}
+
+// Periodic ping for Cirtual Connection
+void ModuleNetworkingClient::SendPing()
+{
+	OutputMemoryStream ping;
+	ping << PROTOCOL_ID;
+	ping << ClientMessage::Ping;
+	sendPacket(ping, serverAddress);
+	//LOG("Sent ping to server");
 }

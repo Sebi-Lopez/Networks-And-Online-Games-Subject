@@ -187,8 +187,15 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				}
 			}
 		}
-
 		// TODO(you): UDP virtual connection lab session
+		else if (message == ClientMessage::Ping)
+		{
+			if (proxy != nullptr)
+			{
+				proxy->lastPingRecieved = Time.time;
+				//LOG("Updated last ping recieved from: %s", proxy->name.c_str());
+			}
+		}
 	}
 }
 
@@ -216,6 +223,12 @@ void ModuleNetworkingServer::onUpdate()
 			{
 				// TODO(you): UDP virtual connection lab session
 
+				if (Time.time - clientProxy.lastPingRecieved >= DISCONNECT_TIMEOUT_SECONDS)
+				{
+					LOG("Someone stopped sending pings, we disconnect him: %s", clientProxy.name);
+					destroyClientProxy(&clientProxy);
+				}
+
 				// Don't let the client proxy point to a destroyed game object
 				if (!IsValid(clientProxy.gameObject))
 				{
@@ -226,6 +239,24 @@ void ModuleNetworkingServer::onUpdate()
 
 				// TODO(you): Reliability on top of UDP lab session
 			}
+		}
+
+		timeSinceLastPingSent += Time.deltaTime; // Should we sent all pings at once, or have a timeSincelastPingSent for every client?
+		if (timeSinceLastPingSent >= PING_INTERVAL_SECONDS)
+		{
+			OutputMemoryStream ping;
+			ping << PROTOCOL_ID;
+			ping << ServerMessage::Ping;
+
+			for (ClientProxy& clientProxy : clientProxies)
+			{
+				if (clientProxy.connected)
+				{
+					sendPacket(ping, clientProxy.address);
+					//LOG("Sent ping to client: %s", clientProxy.name.c_str());
+				}
+			}
+			timeSinceLastPingSent = 0.0f; 
 		}
 	}
 }

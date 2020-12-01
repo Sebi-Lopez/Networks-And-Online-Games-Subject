@@ -87,6 +87,7 @@ void Spaceship::onInput(const InputController &input)
 			laserBehaviour->isServer = isServer;
 
 			laser->tag = gameObject->tag;
+			laser->type = ObjectType::Laser;
 		}
 	}
 }
@@ -143,6 +144,7 @@ void Spaceship::onCollisionTriggered(Collider &c1, Collider &c2)
 
 			explosion->animation = App->modRender->addAnimation(explosion);
 			explosion->animation->clip = App->modResources->explosionClip;
+			explosion->type = ObjectType::Explosion;
 
 			NetworkDestroy(explosion, 2.0f);
 

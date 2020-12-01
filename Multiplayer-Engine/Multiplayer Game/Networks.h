@@ -42,6 +42,7 @@
 #define PACKET_DELIVERY_TIMEOUT_SECONDS                 0.5f
 #define DEFAULT_PACKET_SIZE                     Kilobytes(4)
 #define PING_INTERVAL_SECONDS                           0.5f
+#define REPLICATION_INTERVAL							0.1f
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -80,6 +81,14 @@ struct Behaviour;
 class Task;
 class Screen;
 class ModuleBehaviour;
+
+enum class ObjectType
+{
+	Other = 0,
+	Player,
+	Laser,
+	Explosion
+};
 
 enum class ColliderType
 {

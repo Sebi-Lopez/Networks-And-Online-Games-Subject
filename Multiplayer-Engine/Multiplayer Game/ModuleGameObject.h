@@ -38,6 +38,8 @@ struct GameObject
 	};
 	State state = NON_EXISTING;
 
+	ObjectType type = ObjectType::Other;
+
 private:
 
 	void * operator new(size_t size) = delete;

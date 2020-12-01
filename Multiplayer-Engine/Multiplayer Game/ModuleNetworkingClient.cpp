@@ -135,7 +135,10 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 			//LOG("Recieved ping from server");
 		}
 		// TODO(you): World state replication lab session
-
+		if (message == ServerMessage::Replication)
+		{
+			replicationManagerClient.ReadReplication(packet);
+		}
 		// TODO(you): Reliability on top of UDP lab session
 	}
 }
@@ -168,6 +171,7 @@ void ModuleNetworkingClient::onUpdate()
 	else if (state == ClientState::Connected)
 	{
 		// TODO(you): UDP virtual connection lab session
+		CheckVirtualConnection();
 
 		// Process more inputs if there's space
 		if (inputDataBack - inputDataFront < ArrayCount(inputData))
@@ -208,8 +212,6 @@ void ModuleNetworkingClient::onUpdate()
 
 			sendPacket(packet, serverAddress);
 		}
-
-		CheckVirtualConnection();
 
 		// TODO(you): Latency management lab session
 

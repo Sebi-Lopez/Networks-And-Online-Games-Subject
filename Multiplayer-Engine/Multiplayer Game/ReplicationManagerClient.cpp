@@ -58,23 +58,53 @@ void ReplicationManagerClient::ReadReplication(const InputMemoryStream& packet)
 				{
 					case ObjectType::Player:
 					{
+						//  Type
 						newGameObject->type = ObjectType::Player;
+
+						// Texture
 						newGameObject->sprite = App->modRender->addSprite(newGameObject);
 						newGameObject->sprite->order = 5;
+						// Should send space type
 						newGameObject->sprite->texture = App->modResources->spacecraft1;
+
+						// Create collider
+						// Should we add col?
+						/*newGameObject->collider = App->modCollision->addCollider(ColliderType::Player, newGameObject);
+						newGameObject->collider->isTrigger = true; */
+
+						// Create behaviour
+						Spaceship* spaceshipBehaviour = App->modBehaviour->addSpaceship(newGameObject);
+						newGameObject->behaviour = spaceshipBehaviour;
+
 					} break;
 
 					case ObjectType::Laser:
 					{
+						// Type
 						newGameObject->type = ObjectType::Laser;
+
+						// Texture
 						newGameObject->sprite = App->modRender->addSprite(newGameObject);
 						newGameObject->sprite->order = 3;
 						newGameObject->sprite->texture = App->modResources->laser;
+
+						// Create behaviour
+						App->modBehaviour->addLaser(newGameObject);
 					} break;
 					
 					case ObjectType::Explosion:
 					{
-						
+						// Type
+						newGameObject->type = ObjectType::Explosion;
+
+						// Texture
+						newGameObject->sprite = App->modRender->addSprite(newGameObject);
+						newGameObject->sprite->order = 100;
+						newGameObject->sprite->texture = App->modResources->explosion1;
+
+						//Animation
+						newGameObject->animation = App->modRender->addAnimation(newGameObject);
+						newGameObject->animation->clip = App->modResources->explosionClip;
 					} break;
 				}
 			} break;

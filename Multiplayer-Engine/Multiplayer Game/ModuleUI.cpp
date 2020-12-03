@@ -65,6 +65,9 @@ bool ModuleUI::gui()
 				}
 			}
 
+			if(ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+				ImGui::SetScrollHereY(0.0f);
+
 			//ImGui::SetScrollHere(1.0f);
 
 			ImGui::EndTabItem();

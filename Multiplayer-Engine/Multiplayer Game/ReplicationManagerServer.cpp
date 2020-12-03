@@ -22,9 +22,6 @@ void ReplicationManagerServer::WriteReplication(OutputMemoryStream& packet)
 {
 	for (std::vector<ReplicationCommand>::iterator iter = replication_list.begin(); iter != replication_list.end();)
 	{
-		// Send which object is going to be updated and what type of udpate is
-		packet << (*iter).networkID;
-		packet << (*iter).action;
 		
 		// Depending on the action, serialize different fields
 		switch ((*iter).action)
@@ -33,6 +30,17 @@ void ReplicationManagerServer::WriteReplication(OutputMemoryStream& packet)
 			{
 				GameObject* object = App->modLinkingContext->getNetworkGameObject((*iter).networkID);
 
+				if (object == nullptr)
+				{
+					LOG("Object to Update not found: %i", (*iter).networkID);
+					break;
+				}
+
+				// Send which object is going to be updated and type after checking it exists
+				packet << (*iter).networkID;
+				packet << (*iter).action;
+
+				// Variables
 				packet << object->position.x;
 				packet << object->position.y;
 
@@ -48,6 +56,17 @@ void ReplicationManagerServer::WriteReplication(OutputMemoryStream& packet)
 			{
 				GameObject* object = App->modLinkingContext->getNetworkGameObject((*iter).networkID);
 
+				if (object == nullptr)
+				{
+					LOG("Object to Create not found: %i", (*iter).networkID);
+					break;
+				}
+
+				// Send which object is going to be updated and type after checking it exists
+				packet << (*iter).networkID;
+				packet << (*iter).action;
+
+				// Variables
 				packet << object->position.x;
 				packet << object->position.y;
 
@@ -64,7 +83,10 @@ void ReplicationManagerServer::WriteReplication(OutputMemoryStream& packet)
 
 			case ReplicationAction::Destroy_Obj:
 			{
-				// Nothing to do here, just telling them to delete it
+				// Send which object is going to be updated and type 
+				packet << (*iter).networkID;
+				packet << (*iter).action;
+
 				LOG("Sent to Destroy Object with ID: %i", (*iter).networkID);
 			} break;
 

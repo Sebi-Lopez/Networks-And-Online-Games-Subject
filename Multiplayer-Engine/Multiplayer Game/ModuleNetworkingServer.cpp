@@ -156,6 +156,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				OutputMemoryStream objectsPacket;
 				objectsPacket << PROTOCOL_ID;
 				objectsPacket << ServerMessage::Replication;
+				proxy->replicationManagerServer.WriteReplication(objectsPacket);
 				sendPacket(objectsPacket, fromAddress);
 
 				LOG("Message received: hello - from player %s", proxy->name.c_str());

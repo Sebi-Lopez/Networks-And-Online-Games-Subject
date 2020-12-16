@@ -156,6 +156,8 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				OutputMemoryStream objectsPacket;
 				objectsPacket << PROTOCOL_ID;
 				objectsPacket << ServerMessage::Replication;
+				objectsPacket << proxy->nextExpectedInputSequenceNumber;
+				proxy->replicationManagerServer.WriteReplication(objectsPacket);
 				sendPacket(objectsPacket, fromAddress);
 
 				LOG("Message received: hello - from player %s", proxy->name.c_str());
@@ -176,6 +178,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 			if (proxy != nullptr && IsValid(proxy->gameObject))
 			{
 				// TODO(you): Reliability on top of UDP lab session
+
 
 				// Read input data
 				while (packet.RemainingByteCount() > 0)
@@ -246,18 +249,27 @@ void ModuleNetworkingServer::onUpdate()
 				}
 
 				// TODO(you): World state replication lab session
+				clientProxy.replicationManagerServer.lastReplicationSent += Time.deltaTime; 
+				if (clientProxy.replicationManagerServer.lastReplicationSent >= REPLICATION_INTERVAL)
+				{
+					clientProxy.replicationManagerServer.lastReplicationSent = 0.0f;
+					OutputMemoryStream replicationPacket;
 
-				OutputMemoryStream replicationPacket;
+					replicationPacket << PROTOCOL_ID;
+					replicationPacket << ServerMessage::Replication;
 
-				replicationPacket << PROTOCOL_ID;
-				replicationPacket << ServerMessage::Replication;
+					// TODO(you): Reliability on top of UDP lab session
 
-				clientProxy.replicationManagerServer.WriteReplication(replicationPacket);
+					// We insert sneakily the INPUT NOTIFICATION with the replication packet. 
+					replicationPacket << clientProxy.nextExpectedInputSequenceNumber;
+					LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
 
-				sendPacket(replicationPacket, clientProxy.address);
+					// -------------------------- Actual Replication ---------------------------
 
+					clientProxy.replicationManagerServer.WriteReplication(replicationPacket);
 
-				// TODO(you): Reliability on top of UDP lab session
+					sendPacket(replicationPacket, clientProxy.address);
+				}			
 			}
 		}
 

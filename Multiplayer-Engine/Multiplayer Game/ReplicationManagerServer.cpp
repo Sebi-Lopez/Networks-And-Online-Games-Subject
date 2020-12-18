@@ -49,7 +49,7 @@ void ReplicationManagerServer::WriteReplication(OutputMemoryStream& packet)
 
 				packet << object->angle;
 
-				LOG("Sent to update Object with ID: %i", object->networkId);
+				//LOG("Sent to update Object with ID: %i", object->networkId);
 			} break;
 
 			case ReplicationAction::Create_Obj:
@@ -77,7 +77,7 @@ void ReplicationManagerServer::WriteReplication(OutputMemoryStream& packet)
 
 				packet << object->type;
 
-				LOG("Sent to create Object with ID: %i", object->networkId);
+				//LOG("Sent to create Object with ID: %i", object->networkId);
 
 			} break;
 

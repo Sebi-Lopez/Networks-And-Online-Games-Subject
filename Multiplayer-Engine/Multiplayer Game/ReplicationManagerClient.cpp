@@ -23,7 +23,7 @@ void ReplicationManagerClient::ReadReplication(const InputMemoryStream& packet)
 				{
 					WLOG("Couldnt find an object with id: %i", networkId);
 				}
-				LOG("Updated Object with ID: %i", networkId);
+				//LOG("Updated Object with ID: %i", networkId);
 
 				packet >> object->position.x;
 				packet >> object->position.y;
@@ -42,7 +42,7 @@ void ReplicationManagerClient::ReadReplication(const InputMemoryStream& packet)
 
 				App->modLinkingContext->registerNetworkGameObjectWithNetworkId(newGameObject, networkId);
 				
-				LOG("Created Object with ID: %i", networkId);
+				//LOG("Created Object with ID: %i", networkId);
 
 				packet >> newGameObject->position.x;
 				packet >> newGameObject->position.y;

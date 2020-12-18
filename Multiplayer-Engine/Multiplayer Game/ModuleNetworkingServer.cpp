@@ -262,7 +262,7 @@ void ModuleNetworkingServer::onUpdate()
 
 					// We insert sneakily the INPUT NOTIFICATION with the replication packet. 
 					replicationPacket << clientProxy.nextExpectedInputSequenceNumber;
-					LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
+					//LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
 
 					// -------------------------- Actual Replication ---------------------------
 

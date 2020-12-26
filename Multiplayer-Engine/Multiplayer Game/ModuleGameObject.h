@@ -25,6 +25,7 @@ struct GameObject
 	// Network identity component
 	uint32 networkId = 0;                    // NOTE(jesus): Only for network game objects
 	bool networkInterpolationEnabled = true; // NOTE(jesus): Only for network game objects
+	NetEntityType netType = NetEntityType::None;
 
 	// NOTE(jesus): Don't use in gameplay systems (use Instantiate, Destroy instead)
 	enum State {

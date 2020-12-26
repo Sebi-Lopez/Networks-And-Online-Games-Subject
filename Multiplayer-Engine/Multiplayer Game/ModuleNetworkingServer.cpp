@@ -145,8 +145,15 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				{
 					GameObject *gameObject = networkGameObjects[i];
 					
-					// TODO(you): World state replication lab session
+				// TODO(you): World state replication lab session ------------------------------
+					proxy->replication.Create(gameObject->networkId);
 				}
+				OutputMemoryStream repliPacket;
+				repliPacket << PROTOCOL_ID;
+				repliPacket << ServerMessage::Replication;
+				proxy->replication.Write(repliPacket);
+				sendPacket(repliPacket, fromAddress);
+				// -----------------------------------------------------------------------------
 
 				LOG("Message received: hello - from player %s", proxy->name.c_str());
 			}
@@ -187,15 +194,14 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				}
 			}
 		}
-		// TODO(you): UDP virtual connection lab session
 		else if (message == ClientMessage::Ping)
 		{
-			if (proxy != nullptr)
-			{
-				proxy->lastPingRecieved = Time.time;
-				//LOG("Updated last ping recieved from: %s", proxy->name.c_str());
-			}
+			//WLOG("PING");
 		}
+		// TODO(you): UDP virtual connection lab session -------
+		// we assign lastreceived packet, still dont care if is ping message or not
+		if(proxy)
+			proxy->timeLastRecvPacket = Time.time;
 	}
 }
 
@@ -217,17 +223,30 @@ void ModuleNetworkingServer::onUpdate()
 			}
 		}
 
+		bool sendPing = Time.time - timeLastGeneralPingSent > PING_INTERVAL_SECONDS;
 		for (ClientProxy &clientProxy : clientProxies)
 		{
 			if (clientProxy.connected)
 			{
-				// TODO(you): UDP virtual connection lab session
-
-				if (Time.time - clientProxy.lastPingRecieved >= DISCONNECT_TIMEOUT_SECONDS)
+				// TODO(you): UDP virtual connection lab session ------------------------------------
+				// disconnect timeout
+				if (Time.time - clientProxy.timeLastRecvPacket > DISCONNECT_TIMEOUT_SECONDS)
 				{
-					LOG("Someone stopped sending pings, we disconnect him: %s", clientProxy.name);
-					destroyClientProxy(&clientProxy);
+					WLOG("Inactivity from %s client", clientProxy.name.c_str());
+					destroyClientProxy(&clientProxy); // TODO: Lag/Stutter to rest of clients when this happens
+					//continue;
+					break;
 				}
+				// send ping
+				if (sendPing)
+				{
+					OutputMemoryStream packet;
+					packet << PROTOCOL_ID;
+					packet << ClientMessage::Ping;
+
+					sendPacket(packet, clientProxy.address);
+				}
+				// -----------------------------------------------------------------------------------
 
 				// Don't let the client proxy point to a destroyed game object
 				if (!IsValid(clientProxy.gameObject))
@@ -236,28 +255,18 @@ void ModuleNetworkingServer::onUpdate()
 				}
 
 				// TODO(you): World state replication lab session
+				// TODO: still wip, not send every frame
+				OutputMemoryStream commandsPacket;
+				commandsPacket << PROTOCOL_ID;
+				commandsPacket << ClientMessage::Replication;
+				clientProxy.replication.Write(commandsPacket);
+				sendPacket(commandsPacket, clientProxy.address);
 
 				// TODO(you): Reliability on top of UDP lab session
 			}
 		}
-
-		timeSinceLastPingSent += Time.deltaTime; // Should we sent all pings at once, or have a timeSincelastPingSent for every client?
-		if (timeSinceLastPingSent >= PING_INTERVAL_SECONDS)
-		{
-			OutputMemoryStream ping;
-			ping << PROTOCOL_ID;
-			ping << ServerMessage::Ping;
-
-			for (ClientProxy& clientProxy : clientProxies)
-			{
-				if (clientProxy.connected)
-				{
-					sendPacket(ping, clientProxy.address);
-					//LOG("Sent ping to client: %s", clientProxy.name.c_str());
-				}
-			}
-			timeSinceLastPingSent = 0.0f; 
-		}
+		if (sendPing)
+			timeLastGeneralPingSent = Time.time;
 	}
 }
 
@@ -348,6 +357,7 @@ GameObject * ModuleNetworkingServer::spawnPlayer(uint8 spaceshipType, vec2 initi
 {
 	// Create a new game object with the player properties
 	GameObject *gameObject = NetworkInstantiate();
+	gameObject->netType = NetEntityType::Spaceship;
 	gameObject->position = initialPosition;
 	gameObject->size = { 100, 100 };
 	gameObject->angle = initialAngle;
@@ -371,6 +381,7 @@ GameObject * ModuleNetworkingServer::spawnPlayer(uint8 spaceshipType, vec2 initi
 
 	// Create behaviour
 	Spaceship * spaceshipBehaviour = App->modBehaviour->addSpaceship(gameObject);
+	spaceshipBehaviour->spaceShipType = spaceshipType;
 	gameObject->behaviour = spaceshipBehaviour;
 	gameObject->behaviour->isServer = true;
 
@@ -396,6 +407,7 @@ GameObject * ModuleNetworkingServer::instantiateNetworkObject()
 		if (clientProxies[i].connected)
 		{
 			// TODO(you): World state replication lab session
+			clientProxies[i].replication.Create(gameObject->networkId);
 		}
 	}
 
@@ -410,6 +422,7 @@ void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject)
 		if (clientProxies[i].connected)
 		{
 			// TODO(you): World state replication lab session
+			clientProxies[i].replication.Update(gameObject->networkId);
 		}
 	}
 }
@@ -422,6 +435,7 @@ void ModuleNetworkingServer::destroyNetworkObject(GameObject * gameObject)
 		if (clientProxies[i].connected)
 		{
 			// TODO(you): World state replication lab session
+			clientProxies[i].replication.Destroy(gameObject->networkId);
 		}
 	}
 

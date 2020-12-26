@@ -2,6 +2,12 @@
 
 #include "ModuleNetworking.h"
 
+struct PlayerInfo
+{
+	uint8 spaceShipType = 0;
+	std::string playerName;
+};
+
 class ModuleNetworkingClient : public ModuleNetworking
 {
 public:
@@ -14,7 +20,9 @@ public:
 
 	void setPlayerInfo(const char *playerName, uint8 spaceshipType);
 
+	const PlayerInfo GetPlayerInfo() const;
 
+	const uint32 GetNetworkID() const { return networkId; };
 
 private:
 
@@ -85,19 +93,15 @@ private:
 	//////////////////////////////////////////////////////////////////////
 
 	// TODO(you): UDP virtual connection lab session
-
-	void CheckVirtualConnection();
-	void SendPing();
-
-	float timeSinceLastPingSent = 0.0f;
-	float lastPingRecieved = FLT_MAX;
+	double timeLastRecvPacket = 0.0f;
+	double timeLastSentPing = 0.0f;
 
 	//////////////////////////////////////////////////////////////////////
 	// Replication
 	//////////////////////////////////////////////////////////////////////
 
 	// TODO(you): World state replication lab session
-
+	ReplicationManagerClient repMan;
 
 
 	//////////////////////////////////////////////////////////////////////

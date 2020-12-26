@@ -18,6 +18,14 @@ void ModuleNetworkingClient::setPlayerInfo(const char * pPlayerName, uint8 pSpac
 	spaceshipType = pSpaceshipType;
 }
 
+const PlayerInfo ModuleNetworkingClient::GetPlayerInfo() const
+{
+	PlayerInfo info;
+	info.playerName = playerName;
+	info.spaceShipType = spaceshipType;
+	return info;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////
@@ -103,6 +111,7 @@ void ModuleNetworkingClient::onGui()
 void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, const sockaddr_in &fromAddress)
 {
 	// TODO(you): UDP virtual connection lab session
+	timeLastRecvPacket = Time.time;
 
 	uint32 protoId;
 	packet >> protoId;
@@ -110,6 +119,12 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 
 	ServerMessage message;
 	packet >> message;
+
+	if (message == ServerMessage::Ping) 
+	{
+		//WLOG("PING from server");
+		return;
+	}
 
 	if (state == ClientState::Connecting)
 	{
@@ -129,15 +144,14 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 	}
 	else if (state == ClientState::Connected)
 	{
-		if (message == ServerMessage::Ping)
-		{
-			lastPingRecieved = Time.time;
-			//LOG("Recieved ping from server");
-		}
 		// TODO(you): World state replication lab session
+		if(message == ServerMessage::Replication)
+			repMan.Read(packet);
 
 		// TODO(you): Reliability on top of UDP lab session
 	}
+
+
 }
 
 void ModuleNetworkingClient::onUpdate()
@@ -145,14 +159,26 @@ void ModuleNetworkingClient::onUpdate()
 	if (state == ClientState::Stopped) return;
 
 
-	// TODO(you): UDP virtual connection lab session
-
+	// TODO(you): UDP virtual connection lab session -----------
+	// disconnect the client if exceeds timeout
+	if (Time.time - timeLastRecvPacket > DISCONNECT_TIMEOUT_SECONDS 
+		&& 
+		state != ClientState::Connecting)
+	{
+		WLOG("Disconnected due to a server inactivity");
+		disconnect();
+		state = ClientState::Stopped;
+		return;
+	}
+	// ----------------------------------------------------------
 
 	if (state == ClientState::Connecting)
 	{
 		secondsSinceLastHello += Time.deltaTime;
 
-		if (secondsSinceLastHello > 0.1f)
+		if (secondsSinceLastHello > 1.0f) // TODO: if too short, and disconnect/reconnect fast (client), causes to get
+			// the reply from hello many times(about 2 times normally), and linkingContext wants to "rewrite" info from old
+			// 
 		{
 			secondsSinceLastHello = 0.0f;
 
@@ -167,7 +193,17 @@ void ModuleNetworkingClient::onUpdate()
 	}
 	else if (state == ClientState::Connected)
 	{
-		// TODO(you): UDP virtual connection lab session
+		// TODO(you): UDP virtual connection lab session ------
+		// send periodical ping packet
+		if (Time.time - timeLastSentPing > PING_INTERVAL_SECONDS)
+		{
+			OutputMemoryStream packet;
+			packet << PROTOCOL_ID;
+			packet << ClientMessage::Ping;
+			sendPacket(packet, serverAddress);
+			timeLastSentPing = Time.time;
+		}
+		// ----------------------------------------------------
 
 		// Process more inputs if there's space
 		if (inputDataBack - inputDataFront < ArrayCount(inputData))
@@ -209,8 +245,6 @@ void ModuleNetworkingClient::onUpdate()
 			sendPacket(packet, serverAddress);
 		}
 
-		CheckVirtualConnection();
-
 		// TODO(you): Latency management lab session
 
 		// Update camera for player
@@ -246,30 +280,4 @@ void ModuleNetworkingClient::onDisconnect()
 	}
 
 	App->modRender->cameraPosition = {};
-}
-
-void ModuleNetworkingClient::CheckVirtualConnection()
-{
-	if (Time.time - lastPingRecieved >= DISCONNECT_TIMEOUT_SECONDS)
-	{
-		LOG("Server stopped sending pings, we disconnect.");
-		disconnect();
-	}
-
-	timeSinceLastPingSent += Time.deltaTime;
-	if (timeSinceLastPingSent >= PING_INTERVAL_SECONDS)
-	{
-		SendPing();
-		timeSinceLastPingSent = 0.0f;
-	}	
-}
-
-// Periodic ping for Cirtual Connection
-void ModuleNetworkingClient::SendPing()
-{
-	OutputMemoryStream ping;
-	ping << PROTOCOL_ID;
-	ping << ClientMessage::Ping;
-	sendPacket(ping, serverAddress);
-	//LOG("Sent ping to server");
 }

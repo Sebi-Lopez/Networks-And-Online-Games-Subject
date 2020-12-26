@@ -293,13 +293,14 @@ void ModuleNetworking::processIncomingPackets()
 			{
 				//this can happen if a remote socket closed and we haven't DC'd yet.
 				//this is the ICMP message being sent back saying the port on that computer is closed
-				char fromAddressStr[64];
+				// TODO: WTF
+				/*char fromAddressStr[64];
 				inet_ntop(AF_INET, &fromAddress.sin_addr, fromAddressStr, sizeof(fromAddressStr));
 				WLOG("ModuleNetworking::processIncomingPackets() - Connection reset from %s:%d",
 					fromAddressStr,
 					ntohs(fromAddress.sin_port));
 
-				onConnectionReset(fromAddress);
+				onConnectionReset(fromAddress);*/
 			}
 			else
 			{

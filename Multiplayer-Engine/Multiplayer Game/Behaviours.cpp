@@ -75,6 +75,7 @@ void Spaceship::onInput(const InputController &input)
 		{
 			GameObject *laser = NetworkInstantiate();
 
+			laser->netType = NetEntityType::Laser;
 			laser->position = gameObject->position;
 			laser->angle = gameObject->angle;
 			laser->size = { 20, 60 };
@@ -133,6 +134,7 @@ void Spaceship::onCollisionTriggered(Collider &c1, Collider &c2)
 			}
 
 			GameObject *explosion = NetworkInstantiate();
+			explosion->netType = NetEntityType::Explosion;
 			explosion->position = position;
 			explosion->size = vec2{ size, size };
 			explosion->angle = 365.0f * Random.next();

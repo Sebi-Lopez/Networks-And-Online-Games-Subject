@@ -225,6 +225,7 @@ void ModuleNetworkingServer::onUpdate()
 		}
 
 		bool sendPing = Time.time - timeLastGeneralPingSent > PING_INTERVAL_SECONDS;
+
 		for (ClientProxy &clientProxy : clientProxies)
 		{
 			if (clientProxy.connected)
@@ -257,7 +258,7 @@ void ModuleNetworkingServer::onUpdate()
 
 				// TODO(you): World state replication lab session
 				clientProxy.replication.lastReplicationSent += Time.deltaTime;
-				if (clientProxy.replication.lastReplicationSent = REPLICATION_INTERVAL)
+				if (clientProxy.replication.lastReplicationSent >= REPLICATION_INTERVAL)
 				{
 					clientProxy.replication.lastReplicationSent = 0.0f;
 
@@ -267,7 +268,8 @@ void ModuleNetworkingServer::onUpdate()
 
 					// Sneakily Input notification
 					commandsPacket << clientProxy.nextExpectedInputSequenceNumber; 
-					LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
+					//LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
+
 					// Actual replication
 					clientProxy.replication.Write(commandsPacket);
 					sendPacket(commandsPacket, clientProxy.address);

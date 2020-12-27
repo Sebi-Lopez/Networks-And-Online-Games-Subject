@@ -9,7 +9,10 @@ class ModuleResources : public Module
 public:
 
 	Texture *background = nullptr;
-	Texture *space = nullptr;
+
+	Texture *tex_sunset_background = nullptr;
+	Texture* tex_crosshairs_ss = nullptr;
+
 	Texture *asteroid1 = nullptr;
 	Texture *asteroid2 = nullptr;
 	Texture *spacecraft1 = nullptr;

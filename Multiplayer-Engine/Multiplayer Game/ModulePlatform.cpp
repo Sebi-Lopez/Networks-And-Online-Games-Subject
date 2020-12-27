@@ -190,7 +190,7 @@ bool ModulePlatform::init()
 	}
 
 
-	RECT wr = { 0, 0, 1024, 768 };    // set the size, but not the position
+	RECT wr = { 0, 0, 1280, 720 };    // set the size, but not the position
 	AdjustWindowRect(&wr, WS_SYSMENU | WS_MINIMIZEBOX, FALSE);    // adjust the size
 
 	// Create application window

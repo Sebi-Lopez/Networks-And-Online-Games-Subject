@@ -575,6 +575,7 @@ void ModuleRender::renderScene()
 	for (int i = 0; i < numObjects; ++i)
 	{
 		GameObject *gameObject = orderedGameObjects[i];
+		vec2 textureSize = gameObject->sprite->texture ? gameObject->sprite->texture->size : vec2{ 100.0f, 100.0f };
 		
 		// Upload vertices
 		D3D11_MAPPED_SUBRESOURCE mapped_vertices;
@@ -584,7 +585,28 @@ void ModuleRender::renderScene()
 		}
 		if (gameObject->animation == nullptr)
 		{
-			memcpy(mapped_vertices.pData, (void*)defaultSpriteRect, sizeof(defaultSpriteRect));
+			vec4 rect = gameObject->sprite->clipRect;
+			rect = {rect.x / textureSize.x, rect.y / textureSize.y, rect.z / textureSize.x, rect.w / textureSize.y};
+
+			if (rect.x != 0.0f || rect.y != 0.0f || rect.z != 0.0f || rect.w != 0.0f)
+			{
+				const float u0 = rect.x;
+				const float u1 = rect.x + rect.z;
+				const float v0 = rect.y;
+				const float v1 = rect.y + rect.w;
+				CUSTOMVERTEX* vertex_buffer = (CUSTOMVERTEX*)mapped_vertices.pData;
+				vertex_buffer[0] = { -0.5f, -0.5f, u0, v0 };
+				vertex_buffer[1] = { -0.5f,  0.5f, u0, v1 };
+				vertex_buffer[2] = { 0.5f,  0.5f, u1, v1 };
+				vertex_buffer[3] = { -0.5f, -0.5f, u0, v0 };
+				vertex_buffer[4] = { 0.5f,  0.5f, u1, v1 };
+				vertex_buffer[5] = { 0.5f, -0.5f, u1, v0 };
+			}
+			else
+			{
+				memcpy(mapped_vertices.pData, (void*)defaultSpriteRect, sizeof(defaultSpriteRect));
+			}
+			
 		}
 		else
 		{
@@ -607,7 +629,7 @@ void ModuleRender::renderScene()
 		// Setup matrices into our constant buffer
 		{
 			// World matrix
-			vec2 textureSize = gameObject->sprite->texture ? gameObject->sprite->texture->size : vec2{ 100.0f, 100.0f };
+			//vec2 textureSize = gameObject->sprite->texture ? gameObject->sprite->texture->size : vec2{ 100.0f, 100.0f };
 			vec2 size = vec2{
 				gameObject->size.x == 0.0f ? textureSize.x : gameObject->size.x,
 				gameObject->size.y == 0.0f ? textureSize.y : gameObject->size.y };

@@ -7,6 +7,7 @@ struct Sprite
 	GameObject *gameObject = nullptr;
 	vec2 pivot = vec2{ 0.5f, 0.5f };             // NOTE(jesus): 0.5 means centered
 	vec4 color = vec4{ 1.0f, 1.0f, 1.0f, 1.0f }; // NOTE(jesus): Color to tint the sprite
+	vec4 clipRect = vec4{0.0f, 0.0f, 0.0f, 0.0f}; // NOTE(peter): rect to clip from spritesheet
 	Texture * texture = nullptr;                 // NOTE(jesus): Texture with the actual image
 	int  order = 0;                              // NOTE(jesus): determines the drawing order
 };

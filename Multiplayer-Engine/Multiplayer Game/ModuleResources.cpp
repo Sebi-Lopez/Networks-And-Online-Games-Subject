@@ -25,7 +25,10 @@ bool ModuleResources::init()
 	loadingFinished = true;
 	completionRatio = 1.0f;
 #else
-	loadTextureAsync("sunsetr_background.png", &space);
+	loadTextureAsync("sunsetr_background2.png", &tex_sunset_background);
+	loadTextureAsync("crosshairs_v01.png", &tex_crosshairs_ss);
+	
+	//loadTextureAsync("sunsetr_background.png", &space);
 	loadTextureAsync("asteroid1.png",        &asteroid1);
 	loadTextureAsync("asteroid2.png",        &asteroid2);
 	loadTextureAsync("spacecraft1.png",      &spacecraft1);

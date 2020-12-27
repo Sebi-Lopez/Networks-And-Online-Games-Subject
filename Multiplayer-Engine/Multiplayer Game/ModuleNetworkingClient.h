@@ -83,7 +83,7 @@ private:
 	uint32 inputDataFront = 0;
 	uint32 inputDataBack = 0;
 
-	float inputDeliveryIntervalSeconds = 0.05f;
+	float inputDeliveryIntervalSeconds = 0.1f;
 	float secondsSinceLastInputDelivery = 0.0f;
 
 
@@ -109,7 +109,7 @@ private:
 	//////////////////////////////////////////////////////////////////////
 
 	// TODO(you): Reliability on top of UDP lab session
-
+	DeliveryManager deliveryManagerClient;
 
 
 	//////////////////////////////////////////////////////////////////////

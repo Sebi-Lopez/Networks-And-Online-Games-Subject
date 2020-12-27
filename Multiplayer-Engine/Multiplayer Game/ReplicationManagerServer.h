@@ -30,4 +30,5 @@ public:
 	//ReplicationCommand actions[MAX_ACTIONS];
 	//uint8 nextAction;
 
+	float lastReplicationSent = 0.0f; 
 };

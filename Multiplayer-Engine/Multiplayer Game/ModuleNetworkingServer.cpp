@@ -145,12 +145,13 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				{
 					GameObject *gameObject = networkGameObjects[i];
 					
-				// TODO(you): World state replication lab session ------------------------------
+					// TODO(you): World state replication lab session ------------------------------
 					proxy->replication.Create(gameObject->networkId);
 				}
 				OutputMemoryStream repliPacket;
 				repliPacket << PROTOCOL_ID;
 				repliPacket << ServerMessage::Replication;
+				repliPacket << proxy->nextExpectedInputSequenceNumber;
 				proxy->replication.Write(repliPacket);
 				sendPacket(repliPacket, fromAddress);
 				// -----------------------------------------------------------------------------
@@ -255,12 +256,22 @@ void ModuleNetworkingServer::onUpdate()
 				}
 
 				// TODO(you): World state replication lab session
-				// TODO: still wip, not send every frame
-				OutputMemoryStream commandsPacket;
-				commandsPacket << PROTOCOL_ID;
-				commandsPacket << ClientMessage::Replication;
-				clientProxy.replication.Write(commandsPacket);
-				sendPacket(commandsPacket, clientProxy.address);
+				clientProxy.replication.lastReplicationSent += Time.deltaTime;
+				if (clientProxy.replication.lastReplicationSent = REPLICATION_INTERVAL)
+				{
+					clientProxy.replication.lastReplicationSent = 0.0f;
+
+					OutputMemoryStream commandsPacket;
+					commandsPacket << PROTOCOL_ID;
+					commandsPacket << ClientMessage::Replication;
+
+					// Sneakily Input notification
+					commandsPacket << clientProxy.nextExpectedInputSequenceNumber; 
+					LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
+					// Actual replication
+					clientProxy.replication.Write(commandsPacket);
+					sendPacket(commandsPacket, clientProxy.address);
+				}
 
 				// TODO(you): Reliability on top of UDP lab session
 			}

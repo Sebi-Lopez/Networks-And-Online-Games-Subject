@@ -145,8 +145,13 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 	else if (state == ClientState::Connected)
 	{
 		// TODO(you): World state replication lab session
-		if(message == ServerMessage::Replication)
+		if (message == ServerMessage::Replication)
+		{
+			packet >> inputDataFront;
+			LOG("Client starts counting input from number: %i", inputDataFront);
+
 			repMan.Read(packet);
+		}
 
 		// TODO(you): Reliability on top of UDP lab session
 	}
@@ -237,10 +242,10 @@ void ModuleNetworkingClient::onUpdate()
 				packet << inputPacketData.horizontalAxis;
 				packet << inputPacketData.verticalAxis;
 				packet << inputPacketData.buttonBits;
+				LOG("Pushing sequence number: %i", inputPacketData.sequenceNumber);
 			}
-
-			// Clear the queue
-			inputDataFront = inputDataBack;
+			InputPacketData& last = inputData[(inputDataBack - 1) % ArrayCount(inputData)];
+			LOG("Sending %i input packets last Sequence Number: %i", inputDataBack - inputDataFront, last.sequenceNumber);
 
 			sendPacket(packet, serverAddress);
 		}

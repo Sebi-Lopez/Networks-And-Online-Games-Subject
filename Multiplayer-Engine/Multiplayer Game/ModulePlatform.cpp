@@ -189,16 +189,20 @@ bool ModulePlatform::init()
 		return false;
 	}
 
+
+	RECT wr = { 0, 0, 1024, 768 };    // set the size, but not the position
+	AdjustWindowRect(&wr, WS_SYSMENU | WS_MINIMIZEBOX, FALSE);    // adjust the size
+
 	// Create application window
 	hwnd = ::CreateWindowEx(
 		0,
 		windowClass.lpszClassName,
 		_T(windowTitleStr),
-		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+		WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE, //| WS_EX_WINDOWEDGE, WS_OVERLAPPEDWINDOW
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		1024, //CW_USEDEFAULT,
-		768, //CW_USEDEFAULT,
+		wr.right - wr.left, //CW_USEDEFAULT,
+		wr.bottom - wr.top, //CW_USEDEFAULT,
 		NULL,
 		NULL,
 		windowClass.hInstance,

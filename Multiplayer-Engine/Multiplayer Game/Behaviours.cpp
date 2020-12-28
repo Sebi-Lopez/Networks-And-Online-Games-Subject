@@ -52,7 +52,7 @@ void PlayerCrosshair::onMouse(const MouseController& mouse)
 	//WLOG("%i", mouse.x);
 	if (isServer)
 	{
-		NetworkUpdate(gameObject);
+		NetworkUpdate(gameObject, false);
 	}
 }
 
@@ -112,6 +112,16 @@ void PlayerCrosshair::update()
 	lifebar->position = gameObject->position + vec2{ -50.0f, -50.0f };
 	lifebar->size = vec2{ lifeRatio * 80.0f, 5.0f };
 	lifebar->sprite->color = lerp(colorDead, colorAlive, lifeRatio);*/
+
+	if (isServer)
+		return;
+
+	uint32 id = App->modNetClient->GetNetworkID();
+
+	if (gameObject->networkId == id) {
+		vec2 vp = App->modRender->GetViewportSize();
+		gameObject->position = { (float)Mouse.x - vp.x * 0.5f, (float)Mouse.y - vp.y * 0.5f };
+	}
 }
 
 void PlayerCrosshair::destroy()

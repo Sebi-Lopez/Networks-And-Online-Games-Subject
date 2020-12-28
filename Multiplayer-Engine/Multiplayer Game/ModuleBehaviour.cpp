@@ -30,6 +30,11 @@ bool ModuleBehaviour::update()
 		handleBehaviourLifeCycle(&behaviour);
 	}*/
 
+	for (PlayerCrosshair& behaviour : players_crosshairs)
+	{
+		handleBehaviourLifeCycle(&behaviour);
+	}
+
 	return true;
 }
 

@@ -90,8 +90,8 @@ private:
 	GameObject * instantiateNetworkObject();
 	friend GameObject *(NetworkInstantiate)();
 
-	void updateNetworkObject(GameObject *gameObject);
-	friend void (NetworkUpdate)(GameObject *);
+	void updateNetworkObject(GameObject *gameObject, bool self_inform = true);
+	friend void (NetworkUpdate)(GameObject *, bool self_inform);
 
 	void destroyNetworkObject(GameObject *gameObject);
 	void destroyNetworkObject(GameObject *gameObject, float delaySeconds);
@@ -136,7 +136,7 @@ private:
 GameObject * NetworkInstantiate();
 
 // NOTE(jesus): It marks an object for replication update.
-void NetworkUpdate(GameObject *gameObject);
+void NetworkUpdate(GameObject *gameObject, bool self_inform = true);
 
 // NOTE(jesus): For network objects, use this version instead of
 // the default Destroy(GameObject *gameObject) one. This one makes

@@ -371,6 +371,7 @@ GameObject * ModuleNetworkingServer::spawnPlayer(uint8 crosshairType, vec2 initi
 	//gameObject->collider = App->modCollision->addCollider(ColliderType::Player, gameObject);
 	//gameObject->collider->isTrigger = true; // NOTE(jesus): This object will receive onCollisionTriggered events
 
+	// TODO TODO: create on another place a function to contain these lines, to call from server or client from same place
 	// Create behaviour
 	PlayerCrosshair* crossHairBh = App->modBehaviour->addCrosshair(gameObject);
 	crossHairBh->reticle = App->modBehaviour->GetCrosshairRects(crosshairType);
@@ -412,13 +413,15 @@ GameObject * ModuleNetworkingServer::instantiateNetworkObject()
 	return gameObject;
 }
 
-void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject)
+void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject, bool self_inform)
 {
-	// Notify all client proxies' replication manager to destroy the object remotely
+	// Notify all client proxies' replication manager to update the object remotely
 	for (int i = 0; i < MAX_CLIENTS; ++i)
 	{
 		if (clientProxies[i].connected)
 		{
+			if (clientProxies[i].gameObject->networkId == gameObject->networkId && !self_inform)
+				continue;
 			// TODO(you): World state replication lab session
 			clientProxies[i].replication.Update(gameObject->networkId);
 		}
@@ -482,12 +485,12 @@ GameObject * NetworkInstantiate()
 	return App->modNetServer->instantiateNetworkObject();
 }
 
-void NetworkUpdate(GameObject * gameObject)
+void NetworkUpdate(GameObject * gameObject, bool self_inform)
 {
 	ASSERT(App->modNetServer->isConnected());
 	ASSERT(gameObject->networkId != 0);
 
-	App->modNetServer->updateNetworkObject(gameObject);
+	App->modNetServer->updateNetworkObject(gameObject, self_inform);
 }
 
 void NetworkDestroy(GameObject * gameObject)

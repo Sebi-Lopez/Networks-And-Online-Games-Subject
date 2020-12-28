@@ -129,9 +129,11 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 		//newObj->collider->isTrigger = true; // NOTE(jesus): This object will receive onCollisionTriggered events
 
 		// Create behaviour
-		/*Spaceship* spaceshipBehaviour = App->modBehaviour->addSpaceship(newObj);
-		newObj->behaviour = spaceshipBehaviour;
-		newObj->behaviour->isServer = false;*/
+		PlayerCrosshair* crossHairBh = App->modBehaviour->addCrosshair(newObj);
+		crossHairBh->reticle = App->modBehaviour->GetCrosshairRects(crosshairType);
+		newObj->behaviour = crossHairBh;
+
+
 		break;
 	}
 	//case NetEntityType::Laser:

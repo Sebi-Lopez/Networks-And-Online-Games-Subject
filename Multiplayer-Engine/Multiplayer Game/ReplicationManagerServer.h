@@ -22,10 +22,11 @@ public:
 	void Update(uint32 networkdId);
 	void Destroy(uint32 networkId);
 
-	void Write(OutputMemoryStream& packet);
+	void Write(OutputMemoryStream& packet, DeliveryManager* deliveryManager, std::list<ReplicationCommand>& commands);
 
-	//
-	ReplicationCommand actions[MAX_NETWORK_OBJECTS]; // waste, maybe only need the current objects to modify
+	std::list<ReplicationCommand> commandsList; 
+
+	//ReplicationCommand actions[MAX_NETWORK_OBJECTS]; // waste, maybe only need the current objects to modify
 	//std::map<uint32, ReplicationCommand> actions;
 	//ReplicationCommand actions[MAX_ACTIONS];
 	//uint8 nextAction;

@@ -11,7 +11,6 @@ Delivery* DeliveryManager::WriteSequenceNumber(OutputMemoryStream& packet)
 
 	delivery->sequenceNumber = nextOutSequenceNumber++;
 	delivery->dispatchTime = Time.time;
-	//delivery->delegate->OnDeliveryFailure() = this;
 
 	// Store it in the manager list 
 	pendingDeliveries.push_back(delivery);
@@ -19,7 +18,7 @@ Delivery* DeliveryManager::WriteSequenceNumber(OutputMemoryStream& packet)
 	// Write in the packet the sequence number
 	packet << delivery->sequenceNumber;
 
-	LOG("Writing delivery with sequence number: %i", delivery->sequenceNumber);
+	//LOG("Writing delivery with sequence number: %i", delivery->sequenceNumber);
 	return delivery;
 }
 
@@ -38,7 +37,7 @@ bool DeliveryManager::ProcessSequenceNumber(const InputMemoryStream& packet)
 		return true;
 	}
 
-	LOG("Sequence number out of order. Skipping. Expected seq number: %i. Recieved seq number: %i", nextExpectedSequenceNumber, sequenceNumber);
+	WLOG("Sequence number out of order. Skipping. Expected seq number: %i. Recieved seq number: %i", nextExpectedSequenceNumber, sequenceNumber);
 	return false;
 }
 
@@ -56,7 +55,7 @@ void DeliveryManager::WriteSequenceNumbersPendingAck(OutputMemoryStream& packet)
 	for (std::list<uint32>::iterator iter = pendingAcks.begin(); iter != pendingAcks.end(); ++iter)
 	{
 		packet << (*iter);
-		LOG("Writing ack with sequence number: %i", (*iter));
+		//LOG("Writing ack with sequence number: %i", (*iter));
 	}
 
 	// Clear the list
@@ -78,11 +77,13 @@ void DeliveryManager::ProcessAckdSequenceNumbers(const InputMemoryStream& packet
 		{
 			if ((*iter)->sequenceNumber == sequenceNumberAckd)
 			{
-				LOG("Found acked sequence number in pending deliveries: %i", sequenceNumberAckd);
+				//LOG("Found acked sequence number in pending deliveries: %i", sequenceNumberAckd);
 				// Invoke its callbacks success
-				(*iter)->delegate->OnDeliverySuccess(this);
+				if((*iter)->deliveryDelegate != nullptr)
+					(*iter)->deliveryDelegate->OnDeliverySuccess(this);
 
 				// Remove it from the list
+				delete (*iter);
 				iter = pendingDeliveries.erase(iter);
 				continue;
 			}
@@ -98,14 +99,40 @@ void DeliveryManager::ProcessTimedOutPackets()
 	{
 		if ((Time.time - (*iter)->dispatchTime) >= PACKET_DELIVERY_TIMEOUT_SECONDS)
 		{
-			LOG("Timed out: %i", (*iter)->sequenceNumber);
 			// Call on failure 
-			(*iter)->delegate->OnDeliveryFailure(this);
+			if ((*iter)->deliveryDelegate != nullptr)
+			{
+				WLOG("Timed out a package with a delivery delegate!");
+				(*iter)->deliveryDelegate->OnDeliveryFailure(this);
+			}
 
 			// Remove it
+			delete (*iter);
 			iter = pendingDeliveries.erase(iter);
 			continue;
 		}
 		++iter;
 	}
+}
+
+void DeliveryMustSend::OnDeliverySuccess(DeliveryManager* deliveryManager)
+{
+	// Nothing i guess
+}
+
+void DeliveryMustSend::OnDeliveryFailure(DeliveryManager* deliveryManager)
+{
+	WLOG("Sending an IMPORTANT failed package again!");
+
+	// Here we must send again the package
+	// NOOOT FCKING ACCESSSSSSSSSSSSSS
+	/*OutputMemoryStream commandsPacket;
+	commandsPacket << PROTOCOL_ID;
+	commandsPacket << ClientMessage::Replication;
+
+	commandsPacket << proxy->nextExpectedInputSequenceNumber;
+
+	proxy->replication.Write(commandsPacket, &proxy->deliveryManager, delivery->mustSendCommands);*/
+
+	//sendPacket(commandsPacket, proxy->address);
 }

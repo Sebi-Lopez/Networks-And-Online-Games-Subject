@@ -3,13 +3,13 @@
 // TODO(you): World state replication lab session
 #include "ReplicationManagerServer.h"
 
-void ReplicationManagerServer::Write(OutputMemoryStream& packet)
+void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager* deliveryManager, std::list<ReplicationCommand>& commands)
 {
-	//TODO(sebi): delivery inside the replication manager to have access to the "important" information
+	Delivery* newDelivery = deliveryManager->WriteSequenceNumber(packet);
 
-	for (int i = 0; i < MAX_NETWORK_OBJECTS; ++i) // TODO: is really needed all objects?
+	for (std::list<ReplicationCommand>::iterator iter = commands.begin(); iter != commands.end();)
 	{
-		ReplicationCommand nextCommand = actions[i];
+		ReplicationCommand nextCommand = (*iter);
 
 		switch (nextCommand.action)
 		{
@@ -23,7 +23,7 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			}
 
 			packet << obj->networkId;
-			packet << actions[i].action;
+			packet << nextCommand.action;
 			NetEntityType type = obj->netType;
 			packet << type;
 			if (type == NetEntityType::Spaceship)
@@ -41,6 +41,9 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			packet << obj->position.y;
 			packet << obj->angle;
 
+			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
+			newDelivery->mustSendCommands.push_back(nextCommand);
+
 			break;
 		}
 		case ReplicationAction::Update:
@@ -48,7 +51,7 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			GameObject* obj = App->modLinkingContext->getNetworkGameObject(nextCommand.networkId);
 
 			packet << obj->networkId;
-			packet << actions[i].action;
+			packet << nextCommand.action;
 			NetEntityType type = obj->netType;
 			packet << type;
 			if (type == NetEntityType::Spaceship)
@@ -65,7 +68,10 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 		case ReplicationAction::Destroy:
 		{
 			packet << nextCommand.networkId;
-			packet << actions[i].action;
+			packet << nextCommand.action;
+
+			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
+			newDelivery->mustSendCommands.push_back(nextCommand);
 
 			break;
 		}
@@ -73,34 +79,34 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			break;
 		} 
 
-		actions[i] = {};
+		iter = commands.erase(iter);
 	}
 }
 
 // TODO: needs to copy paste but only changes the action?
 void ReplicationManagerServer::Create(uint32 networkId)
 {
-	uint16 arrayIndex = networkId & 0xffff;
 	ReplicationCommand com;
 	com.action = ReplicationAction::Create;
 	com.networkId = networkId;
-	actions[arrayIndex] = com;
+
+	commandsList.push_back(com);
 }
 
 void ReplicationManagerServer::Update(uint32 networkId)
 {
-	uint16 arrayIndex = networkId & 0xffff;
 	ReplicationCommand com;
 	com.action = ReplicationAction::Update;
 	com.networkId = networkId;
-	actions[arrayIndex] = com;
+
+	commandsList.push_back(com);
 }
 
 void ReplicationManagerServer::Destroy(uint32 networkId)
 {
-	uint16 arrayIndex = networkId & 0xffff;
 	ReplicationCommand com;
 	com.action = ReplicationAction::Destroy;
 	com.networkId = networkId;
-	actions[arrayIndex] = com;
+		
+	commandsList.push_back(com);
 }

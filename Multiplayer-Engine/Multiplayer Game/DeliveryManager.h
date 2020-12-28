@@ -6,6 +6,8 @@
 #include <list>
 
 class DeliveryManager;
+class Delivery;
+class ReplicationCommand;
 
 class DeliveryDelegate {
 
@@ -14,14 +16,41 @@ public:
 	virtual void OnDeliverySuccess(DeliveryManager* deliveryManager) = 0;
 	virtual void OnDeliveryFailure(DeliveryManager* deliveryManager) = 0;
 
+	Delivery* delivery = nullptr; 
+};
+
+class DeliveryMustSend : public DeliveryDelegate {
+
+public:
+	DeliveryMustSend(Delivery* myDelivery) 
+	{
+		delivery = myDelivery;
+	}
+
+	void OnDeliverySuccess(DeliveryManager* deliveryManager) override;
+	void OnDeliveryFailure(DeliveryManager* deliveryManager) override;
+
 };
 
 struct Delivery {
 
+	~Delivery() {
+		if (deliveryDelegate != nullptr)
+		{
+			delete deliveryDelegate;
+			deliveryDelegate = nullptr;
+		}
+	}
+
 	uint32 sequenceNumber = 0;
 	double dispatchTime = 0.0;
-	DeliveryDelegate* delegate = nullptr;
+	DeliveryDelegate* deliveryDelegate = nullptr;
 
+	// Aditional Info to be able to do something with the failed/success deliveries
+
+	// We save a list of commands that must be sended no matter what, 
+	// so we can send them later if the packet is dropped
+	std::list<ReplicationCommand> mustSendCommands; 
 };
 
 class DeliveryManager {

@@ -5,6 +5,8 @@
 
 void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 {
+	//TODO(sebi): delivery inside the replication manager to have access to the "important" information
+
 	for (int i = 0; i < MAX_NETWORK_OBJECTS; ++i) // TODO: is really needed all objects?
 	{
 		ReplicationCommand nextCommand = actions[i];

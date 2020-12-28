@@ -152,6 +152,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				repliPacket << PROTOCOL_ID;
 				repliPacket << ServerMessage::Replication;
 				repliPacket << proxy->nextExpectedInputSequenceNumber;
+				proxy->deliveryManager.WriteSequenceNumber(repliPacket);
 				proxy->replication.Write(repliPacket);
 				sendPacket(repliPacket, fromAddress);
 				// -----------------------------------------------------------------------------
@@ -170,6 +171,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 		}
 		else if (message == ClientMessage::Input)
 		{
+			proxy->deliveryManager.ProcessAckdSequenceNumbers(packet);
 			// Process the input packet and update the corresponding game object
 			if (proxy != nullptr && IsValid(proxy->gameObject))
 			{
@@ -271,11 +273,14 @@ void ModuleNetworkingServer::onUpdate()
 					//LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
 
 					// Actual replication
+					clientProxy.deliveryManager.WriteSequenceNumber(commandsPacket);
 					clientProxy.replication.Write(commandsPacket);
+
 					sendPacket(commandsPacket, clientProxy.address);
 				}
 
 				// TODO(you): Reliability on top of UDP lab session
+				// TODO(sebi): ProcessTimedOutPackets();
 			}
 		}
 		if (sendPing)

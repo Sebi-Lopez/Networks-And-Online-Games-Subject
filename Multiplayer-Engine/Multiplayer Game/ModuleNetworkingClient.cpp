@@ -147,10 +147,12 @@ void ModuleNetworkingClient::onPacketReceived(const InputMemoryStream &packet, c
 		// TODO(you): World state replication lab session
 		if (message == ServerMessage::Replication)
 		{
+			// Sneakily receiving Input notification
 			packet >> inputDataFront;
 			//LOG("Client starts counting input from number: %i", inputDataFront);
 
-			repMan.Read(packet);
+			if(deliveryManagerClient.ProcessSequenceNumber(packet))
+				repMan.Read(packet);
 		}
 
 		// TODO(you): Reliability on top of UDP lab session
@@ -234,6 +236,9 @@ void ModuleNetworkingClient::onUpdate()
 			packet << ClientMessage::Input;
 
 			// TODO(you): Reliability on top of UDP lab session
+			
+			// Use this packet to send replication akcks
+			deliveryManagerClient.WriteSequenceNumbersPendingAck(packet);
 
 			for (uint32 i = inputDataFront; i < inputDataBack; ++i)
 			{

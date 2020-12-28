@@ -100,6 +100,8 @@ public:
 
 	void present();
 
+	vec2 GetViewportSize() const;
+
 
 	// Attributes
 

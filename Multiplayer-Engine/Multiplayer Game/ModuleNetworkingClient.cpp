@@ -215,6 +215,10 @@ void ModuleNetworkingClient::onUpdate()
 			inputPacketData.horizontalAxis = Input.horizontalAxis;
 			inputPacketData.verticalAxis = Input.verticalAxis;
 			inputPacketData.buttonBits = packInputControllerButtons(Input);
+			inputPacketData.mousex = Mouse.x;
+			inputPacketData.mousey = Mouse.y;
+			//inputPacketData.mouseBits = packInputControllerButtons(Mouse);
+
 		}
 
 		secondsSinceLastInputDelivery += Time.deltaTime;
@@ -237,6 +241,8 @@ void ModuleNetworkingClient::onUpdate()
 				packet << inputPacketData.horizontalAxis;
 				packet << inputPacketData.verticalAxis;
 				packet << inputPacketData.buttonBits;
+				packet << inputPacketData.mousex;
+				packet << inputPacketData.mousey;
 			}
 
 			// Clear the queue

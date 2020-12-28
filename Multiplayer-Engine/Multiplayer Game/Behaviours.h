@@ -14,6 +14,7 @@ struct Behaviour
 	virtual void start() { }
 
 	virtual void onInput(const InputController &input) { }
+	virtual void onMouse(const MouseController &mouse) { } // xd
 
 	virtual void update() { }
 
@@ -52,6 +53,7 @@ struct PlayerCrosshair : public Behaviour
 	void start() override;
 
 	void onInput(const InputController &input) override;
+	void onMouse(const MouseController& mouse) override;
 
 	void update() override;
 

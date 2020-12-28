@@ -779,3 +779,15 @@ void ModuleRender::CleanupRenderTarget()
 		g_mainRenderTargetView = NULL;
 	}
 }
+
+vec2 ModuleRender::GetViewportSize() const
+{
+	D3D11_VIEWPORT vp = {};
+	RECT rect;
+	::GetClientRect(hwnd, &rect);
+	vp.Width = (float)(rect.right - rect.left);
+	vp.Height = (float)(rect.bottom - rect.top);
+
+	vec2 ret = { vp.Width, vp.Height };
+	return ret;
+}

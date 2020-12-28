@@ -45,6 +45,17 @@ void PlayerCrosshair::start()
 	lifebar->sprite->order = 5;*/
 }
 
+void PlayerCrosshair::onMouse(const MouseController& mouse)
+{
+	vec2 vp = App->modRender->GetViewportSize();
+	gameObject->position = { (float)mouse.x - vp.x * 0.5f, (float)mouse.y - vp.y * 0.5f };
+	//WLOG("%i", mouse.x);
+	if (isServer)
+	{
+		NetworkUpdate(gameObject);
+	}
+}
+
 void PlayerCrosshair::onInput(const InputController &input)
 {
 	/*if (input.horizontalAxis != 0.0f)
@@ -58,7 +69,7 @@ void PlayerCrosshair::onInput(const InputController &input)
 		}
 	}*/
 
-	if (input.actionDown == ButtonState::Pressed)
+	/*if (input.actionDown == ButtonState::Pressed)
 	{
 		const float advanceSpeed = 200.0f;
 		gameObject->position += vec2FromDegrees(gameObject->angle) * advanceSpeed * Time.deltaTime;
@@ -67,7 +78,8 @@ void PlayerCrosshair::onInput(const InputController &input)
 		{
 			NetworkUpdate(gameObject);
 		}
-	}
+	}*/
+
 
 	/*if (input.actionLeft == ButtonState::Press)
 	{

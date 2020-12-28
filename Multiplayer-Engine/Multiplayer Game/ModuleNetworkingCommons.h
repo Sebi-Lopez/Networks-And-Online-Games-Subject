@@ -13,12 +13,16 @@ struct PacketHeader
 
 // Input ///////////////////////////////////////////////////////////////
 
-struct InputPacketData
+struct InputPacketData // TODO: remove unnecessary inputs
 {
 	uint32 sequenceNumber = 0;
 	real32 horizontalAxis = 0.0f;
 	real32 verticalAxis = 0.0f;
 	uint16 buttonBits = 0;
+	int16 mousex = 0;
+	int16 mousey = 0;
+	//uint16 mouseBits = 0;
+	
 };
 
 uint16 packInputControllerButtons(const InputController &input);

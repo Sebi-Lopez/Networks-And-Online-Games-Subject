@@ -58,6 +58,7 @@ private:
 
 		uint32 nextExpectedInputSequenceNumber = 0;
 		InputController gamepad;
+		MouseController mouse;
 	};
 
 	ClientProxy clientProxies[MAX_CLIENTS];

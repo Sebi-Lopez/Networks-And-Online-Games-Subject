@@ -76,7 +76,7 @@ public:
 	// Spawning network objects
 	//////////////////////////////////////////////////////////////////////
 
-	GameObject * spawnPlayer(uint8 spaceshipType, vec2 initialPosition, float initialAngle);
+	GameObject * spawnPlayer(uint8 crosshairType, vec2 initialPosition);
 
 
 

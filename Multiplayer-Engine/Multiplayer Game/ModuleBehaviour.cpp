@@ -1,9 +1,26 @@
 #include "Networks.h"
 #include "ModuleBehaviour.h"
 
+bool ModuleBehaviour::start()
+{
+	crosshairTypeRects[0].crosshairType = 0;
+	crosshairTypeRects[0].reticle_outside = { 0, 0, 256, 256 };
+	crosshairTypeRects[0].reticle_hit = { 256, 0, 256, 256 };
+
+	crosshairTypeRects[1].crosshairType = 1;
+	crosshairTypeRects[1].reticle_outside = { 0, 256, 256, 256 };
+	crosshairTypeRects[1].reticle_hit = { 256, 256, 256, 256 };
+
+	crosshairTypeRects[2].crosshairType = 2;
+	crosshairTypeRects[2].reticle_outside = { 512, 0, 256, 256 };
+	crosshairTypeRects[2].reticle_hit = { 512, 256, 256, 256 };
+
+	return true;
+}
+
 bool ModuleBehaviour::update()
 {
-	for (Spaceship &behaviour : spaceships)
+	/*for (Spaceship &behaviour : spaceships)
 	{
 		handleBehaviourLifeCycle(&behaviour);
 	}
@@ -11,14 +28,14 @@ bool ModuleBehaviour::update()
 	for (Laser &behaviour : lasers)
 	{
 		handleBehaviourLifeCycle(&behaviour);
-	}
+	}*/
 
 	return true;
 }
 
 Behaviour *ModuleBehaviour::addBehaviour(BehaviourType behaviourType, GameObject *parentGameObject)
 {
-	switch (behaviourType)
+	/*switch (behaviourType)
 	{
 	case BehaviourType::Spaceship:
 		return addSpaceship(parentGameObject);
@@ -26,18 +43,20 @@ Behaviour *ModuleBehaviour::addBehaviour(BehaviourType behaviourType, GameObject
 		return addLaser(parentGameObject);
 	default:
 		return nullptr;
-	}
+	}*/
+
+	return nullptr;
 }
 
-Spaceship *ModuleBehaviour::addSpaceship(GameObject *parentGameObject)
+PlayerCrosshair* ModuleBehaviour::addCrosshair(GameObject* parentGo)
 {
-	for (Spaceship &behaviour : spaceships)
+	for (PlayerCrosshair& behaviour : players_crosshairs)
 	{
 		if (behaviour.gameObject == nullptr)
 		{
 			behaviour = {};
-			behaviour.gameObject = parentGameObject;
-			parentGameObject->behaviour = &behaviour;
+			behaviour.gameObject = parentGo;
+			parentGo->behaviour = &behaviour;
 			return &behaviour;
 		}
 	}
@@ -46,22 +65,56 @@ Spaceship *ModuleBehaviour::addSpaceship(GameObject *parentGameObject)
 	return nullptr;
 }
 
-Laser *ModuleBehaviour::addLaser(GameObject *parentGameObject)
-{
-	for (Laser &behaviour : lasers)
-	{
-		if (behaviour.gameObject == nullptr)
-		{
-			behaviour = {};
-			behaviour.gameObject = parentGameObject;
-			parentGameObject->behaviour = &behaviour;
-			return &behaviour;
-		}
-	}
+//Spaceship* ModuleBehaviour::addSpaceship(GameObject* parentGameObject)
+//{
+//	for (Spaceship& behaviour : spaceships)
+//	{
+//		if (behaviour.gameObject == nullptr)
+//		{
+//			behaviour = {};
+//			behaviour.gameObject = parentGameObject;
+//			parentGameObject->behaviour = &behaviour;
+//			return &behaviour;
+//		}
+//	}
+//
+//	ASSERT(false);
+//	return nullptr;
+//}
 
-	ASSERT(false);
-	return nullptr;
-}
+//Spaceship *ModuleBehaviour::addSpaceship(GameObject *parentGameObject)
+//{
+//	for (Spaceship &behaviour : spaceships)
+//	{
+//		if (behaviour.gameObject == nullptr)
+//		{
+//			behaviour = {};
+//			behaviour.gameObject = parentGameObject;
+//			parentGameObject->behaviour = &behaviour;
+//			return &behaviour;
+//		}
+//	}
+//
+//	ASSERT(false);
+//	return nullptr;
+//}
+
+//Laser *ModuleBehaviour::addLaser(GameObject *parentGameObject)
+//{
+//	for (Laser &behaviour : lasers)
+//	{
+//		if (behaviour.gameObject == nullptr)
+//		{
+//			behaviour = {};
+//			behaviour.gameObject = parentGameObject;
+//			parentGameObject->behaviour = &behaviour;
+//			return &behaviour;
+//		}
+//	}
+//
+//	ASSERT(false);
+//	return nullptr;
+//}
 
 void ModuleBehaviour::handleBehaviourLifeCycle(Behaviour *behaviour)
 {
@@ -85,4 +138,12 @@ void ModuleBehaviour::handleBehaviourLifeCycle(Behaviour *behaviour)
 		default:;
 		}
 	}
+}
+
+CrosshairRects ModuleBehaviour::GetCrosshairRects(uint8 type) const
+{
+	if (type > MAX_CROSSHAIR_TYPES)
+		return CrosshairRects();
+
+	return crosshairTypeRects[type];
 }

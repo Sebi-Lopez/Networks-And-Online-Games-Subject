@@ -251,7 +251,7 @@ void ModuleNetworkingClient::onUpdate()
 		GameObject *playerGameObject = App->modLinkingContext->getNetworkGameObject(networkId);
 		if (playerGameObject != nullptr)
 		{
-			App->modRender->cameraPosition = playerGameObject->position;
+			//App->modRender->cameraPosition = playerGameObject->position;
 		}
 		else
 		{

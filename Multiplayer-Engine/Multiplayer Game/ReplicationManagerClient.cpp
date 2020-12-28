@@ -36,14 +36,14 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 			}
 			// check if is our spaceship
 			
-			if (obj->netType == NetEntityType::Spaceship)
+			if (obj->netType == NetEntityType::Crosshair)
 			{
-				if (obj->networkId == App->modNetClient->GetNetworkID())
-				{
-					WLOG("KICKED: you are killed");
-					NetworkDisconnect();
-					//App->modNetClient->disconnect();
-				}
+				//if (obj->networkId == App->modNetClient->GetNetworkID())
+				//{
+				//	//WLOG("KICKED: you are killed");
+				//	//NetworkDisconnect();
+				//	//App->modNetClient->disconnect();
+				//}
 			}
 			
 			App->modLinkingContext->unregisterNetworkGameObject(obj);
@@ -73,24 +73,24 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 	{
 	case NetEntityType::None:
 		break;
-	case NetEntityType::Spaceship:
+	case NetEntityType::Crosshair:
 	{
 
-		Spaceship* ss = dynamic_cast<Spaceship*>(obj2U->behaviour);
-		packet >> ss->hitPoints;
+		//Crosshair* ch = dynamic_cast<Crosshair*>(obj2U->behaviour);
+		//packet >> ss->hitPoints;
 		
 		packet >> obj2U->position.x;
 		packet >> obj2U->position.y;
-		packet >> obj2U->angle;
+		//packet >> obj2U->angle;
 		break;
 	}
-	case NetEntityType::Laser:
+	/*case NetEntityType::Laser:
 	{
 		packet >> obj2U->position.x;
 		packet >> obj2U->position.y;
 		packet >> obj2U->angle;
 		break;
-	}
+	}*/
 	default:
 		break;
 	}
@@ -104,66 +104,58 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 
 	switch (type)
 	{
-	case NetEntityType::Spaceship:
+	case NetEntityType::Crosshair:
 	{
 		GameObject* newObj = App->modGameObject->Instantiate();
 		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(newObj, networkId);
-		newObj->netType = NetEntityType::Spaceship;
+		newObj->netType = NetEntityType::Crosshair;
 
-		uint8 spaceshipType = 0;
-		packet >> spaceshipType;
+		uint8 crosshairType = 0;
+		packet >> crosshairType;
 		packet >> newObj->position.x;
 		packet >> newObj->position.y;
-		packet >> newObj->angle;
+		//packet >> newObj->angle;
 		newObj->size = { 100, 100 };
 
 		// Create sprite
 		newObj->sprite = App->modRender->addSprite(newObj);
 		newObj->sprite->order = 5;
-
-		if (spaceshipType == 0) {
-			newObj->sprite->texture = App->modResources->spacecraft1;
-		}
-		else if (spaceshipType == 1) {
-			newObj->sprite->texture = App->modResources->spacecraft2;
-		}
-		else {
-			newObj->sprite->texture = App->modResources->spacecraft3;
-		}
-
+		newObj->sprite->texture = App->modResources->tex_crosshairs_ss;
+		newObj->sprite->clipRect = App->modBehaviour->GetCrosshairRects(crosshairType).reticle_outside;
+		
 
 		// Create collider
 		//newObj->collider = App->modCollision->addCollider(ColliderType::Player, newObj);
 		//newObj->collider->isTrigger = true; // NOTE(jesus): This object will receive onCollisionTriggered events
 
 		// Create behaviour
-		Spaceship* spaceshipBehaviour = App->modBehaviour->addSpaceship(newObj);
+		/*Spaceship* spaceshipBehaviour = App->modBehaviour->addSpaceship(newObj);
 		newObj->behaviour = spaceshipBehaviour;
-		newObj->behaviour->isServer = false;
+		newObj->behaviour->isServer = false;*/
 		break;
 	}
-	case NetEntityType::Laser:
-	{
-		GameObject* laser = App->modGameObject->Instantiate();
-		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(laser, networkId);
-		laser->netType = NetEntityType::Laser;
+	//case NetEntityType::Laser:
+	//{
+	//	GameObject* laser = App->modGameObject->Instantiate();
+	//	App->modLinkingContext->registerNetworkGameObjectWithNetworkId(laser, networkId);
+	//	laser->netType = NetEntityType::Laser;
 
-		packet >> laser->position.x;
-		packet >> laser->position.y;
-		packet >> laser->angle;
-		laser->size = { 20, 60 };
+	//	packet >> laser->position.x;
+	//	packet >> laser->position.y;
+	//	packet >> laser->angle;
+	//	laser->size = { 20, 60 };
 
-		laser->sprite = App->modRender->addSprite(laser);
-		laser->sprite->order = 3;
-		laser->sprite->texture = App->modResources->laser;
+	//	laser->sprite = App->modRender->addSprite(laser);
+	//	laser->sprite->order = 3;
+	//	laser->sprite->texture = App->modResources->laser;
 
-		Laser* laserBehaviour = App->modBehaviour->addLaser(laser);
-		laserBehaviour->isServer = false;
+	//	Laser* laserBehaviour = App->modBehaviour->addLaser(laser);
+	//	laserBehaviour->isServer = false;
 
-		//laser->tag = gameObject->tag;
-		break;
-	}
-	case NetEntityType::Explosion:
+	//	//laser->tag = gameObject->tag;
+	//	break;
+	//}
+	/*case NetEntityType::Explosion:
 	{
 		GameObject* explosion = Instantiate();
 		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(explosion, networkId);
@@ -183,7 +175,7 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 		explosion->animation = App->modRender->addAnimation(explosion);
 		explosion->animation->clip = App->modResources->explosionClip;
 		break;
-	}
+	}*/
 	default:
 	{
 		break;

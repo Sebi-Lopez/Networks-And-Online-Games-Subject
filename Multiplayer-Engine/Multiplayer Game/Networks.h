@@ -93,7 +93,7 @@ enum class ColliderType
 ////////////////////////////////////////////////////////////////////////
 enum class NetEntityType
 {
-	None, Explosion, Spaceship, Laser, MAX
+	None, Crosshair, Shoot, MAX
 };
 
 

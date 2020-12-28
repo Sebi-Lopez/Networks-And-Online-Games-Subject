@@ -30,32 +30,24 @@ struct Behaviour
 enum class BehaviourType : uint8
 {
 	None,
-	Spaceship,
-	Laser,
+	crosshair,
+	max
+};
+
+struct CrosshairRects
+{
+	uint8 crosshairType = 0;
+	vec4 reticle_outside = {};
+	vec4 reticle_hit = {};
 };
 
 
-struct Laser : public Behaviour
+struct PlayerCrosshair : public Behaviour
 {
-	float secondsSinceCreation = 0.0f;
+	
+	CrosshairRects reticle;
 
-	BehaviourType type() const override { return BehaviourType::Laser; }
-
-	void start() override;
-
-	void update() override;
-};
-
-
-struct Spaceship : public Behaviour
-{
-	static const uint8 MAX_HIT_POINTS = 5;
-	uint8 hitPoints = MAX_HIT_POINTS;
-	uint8 spaceShipType = 0;
-
-	GameObject *lifebar = nullptr;
-
-	BehaviourType type() const override { return BehaviourType::Spaceship; }
+	BehaviourType type() const override { return BehaviourType::crosshair; }
 
 	void start() override;
 
@@ -71,3 +63,41 @@ struct Spaceship : public Behaviour
 
 	void read(const InputMemoryStream &packet) override;
 };
+
+
+//struct Laser : public Behaviour
+//{
+//	float secondsSinceCreation = 0.0f;
+//
+//	BehaviourType type() const override { return BehaviourType::Laser; }
+//
+//	void start() override;
+//
+//	void update() override;
+//};
+
+
+//struct Spaceship : public Behaviour
+//{
+//	static const uint8 MAX_HIT_POINTS = 5;
+//	uint8 hitPoints = MAX_HIT_POINTS;
+//	uint8 spaceShipType = 0;
+//
+//	GameObject *lifebar = nullptr;
+//
+//	BehaviourType type() const override { return BehaviourType::Spaceship; }
+//
+//	void start() override;
+//
+//	void onInput(const InputController &input) override;
+//
+//	void update() override;
+//
+//	void destroy() override;
+//
+//	void onCollisionTriggered(Collider &c1, Collider &c2) override;
+//
+//	void write(OutputMemoryStream &packet) override;
+//
+//	void read(const InputMemoryStream &packet) override;
+//};

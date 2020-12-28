@@ -13,7 +13,6 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 		{
 		case ReplicationAction::Create:
 		{
-			// TODO: make templatized creation class
 			GameObject* obj = App->modLinkingContext->getNetworkGameObject(nextCommand.networkId);
 			if (obj == nullptr) {
 				ELOG("Replication create server: Object not found");
@@ -24,20 +23,21 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			packet << actions[i].action;
 			NetEntityType type = obj->netType;
 			packet << type;
-			if (type == NetEntityType::Spaceship)
+			if (type == NetEntityType::Crosshair)
 			{
-				Spaceship* ss = dynamic_cast<Spaceship*>(obj->behaviour);
-				packet << ss->spaceShipType;
+				PlayerCrosshair* behaviour = dynamic_cast<PlayerCrosshair*>(obj->behaviour);
+				packet << behaviour->reticle.crosshairType;
+				
 			}
-			else if (type == NetEntityType::Explosion)
+			/*else if (type == NetEntityType::Explosion)
 			{
 				packet << obj->size.x;
 				packet << obj->size.y;
-			}
+			}*/
 
 			packet << obj->position.x;
 			packet << obj->position.y;
-			packet << obj->angle;
+			//packet << obj->angle;
 
 			break;
 		}
@@ -49,15 +49,15 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet)
 			packet << actions[i].action;
 			NetEntityType type = obj->netType;
 			packet << type;
-			if (type == NetEntityType::Spaceship)
+			if (type == NetEntityType::Crosshair)
 			{
-				Spaceship* ss = dynamic_cast<Spaceship*>(obj->behaviour);
-				packet << ss->hitPoints;
+				//Crosshair* ch = dynamic_cast<Crosshair*>(obj->behaviour);
+				//packet << ss->hitPoints;
 			}
 
 			packet << obj->position.x;
 			packet << obj->position.y;
-			packet << obj->angle;
+			//packet << obj->angle;
 			break;
 		}
 		case ReplicationAction::Destroy:

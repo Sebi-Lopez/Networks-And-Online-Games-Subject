@@ -3,51 +3,51 @@
 
 
 
-void Laser::start()
-{
-	gameObject->networkInterpolationEnabled = false;
-
-	App->modSound->playAudioClip(App->modResources->audioClipLaser);
-}
-
-void Laser::update()
-{
-	secondsSinceCreation += Time.deltaTime;
-
-	const float pixelsPerSecond = 1000.0f;
-	gameObject->position += vec2FromDegrees(gameObject->angle) * pixelsPerSecond * Time.deltaTime;
-
-	if (isServer)
-	{
-		const float neutralTimeSeconds = 0.1f;
-		if (secondsSinceCreation > neutralTimeSeconds && gameObject->collider == nullptr) {
-			gameObject->collider = App->modCollision->addCollider(ColliderType::Laser, gameObject);
-		}
-
-		const float lifetimeSeconds = 2.0f;
-		if (secondsSinceCreation >= lifetimeSeconds) {
-			NetworkDestroy(gameObject);
-		}
-	}
-}
-
-
+//void Laser::start()
+//{
+//	gameObject->networkInterpolationEnabled = false;
+//
+//	App->modSound->playAudioClip(App->modResources->audioClipLaser);
+//}
+//
+//void Laser::update()
+//{
+//	secondsSinceCreation += Time.deltaTime;
+//
+//	const float pixelsPerSecond = 1000.0f;
+//	gameObject->position += vec2FromDegrees(gameObject->angle) * pixelsPerSecond * Time.deltaTime;
+//
+//	if (isServer)
+//	{
+//		const float neutralTimeSeconds = 0.1f;
+//		if (secondsSinceCreation > neutralTimeSeconds && gameObject->collider == nullptr) {
+//			gameObject->collider = App->modCollision->addCollider(ColliderType::Laser, gameObject);
+//		}
+//
+//		const float lifetimeSeconds = 2.0f;
+//		if (secondsSinceCreation >= lifetimeSeconds) {
+//			NetworkDestroy(gameObject);
+//		}
+//	}
+//}
 
 
 
-void Spaceship::start()
+
+
+void PlayerCrosshair::start()
 {
 	gameObject->tag = (uint32)(Random.next() * UINT_MAX);
 
-	lifebar = Instantiate();
+	/*lifebar = Instantiate();
 	lifebar->sprite = App->modRender->addSprite(lifebar);
 	lifebar->sprite->pivot = vec2{ 0.0f, 0.5f };
-	lifebar->sprite->order = 5;
+	lifebar->sprite->order = 5;*/
 }
 
-void Spaceship::onInput(const InputController &input)
+void PlayerCrosshair::onInput(const InputController &input)
 {
-	if (input.horizontalAxis != 0.0f)
+	/*if (input.horizontalAxis != 0.0f)
 	{
 		const float rotateSpeed = 180.0f;
 		gameObject->angle += input.horizontalAxis * rotateSpeed * Time.deltaTime;
@@ -56,7 +56,7 @@ void Spaceship::onInput(const InputController &input)
 		{
 			NetworkUpdate(gameObject);
 		}
-	}
+	}*/
 
 	if (input.actionDown == ButtonState::Pressed)
 	{
@@ -69,7 +69,7 @@ void Spaceship::onInput(const InputController &input)
 		}
 	}
 
-	if (input.actionLeft == ButtonState::Press)
+	/*if (input.actionLeft == ButtonState::Press)
 	{
 		if (isServer)
 		{
@@ -89,25 +89,25 @@ void Spaceship::onInput(const InputController &input)
 
 			laser->tag = gameObject->tag;
 		}
-	}
+	}*/
 }
 
-void Spaceship::update()
+void PlayerCrosshair::update()
 {
-	static const vec4 colorAlive = vec4{ 0.2f, 1.0f, 0.1f, 0.5f };
+	/*static const vec4 colorAlive = vec4{ 0.2f, 1.0f, 0.1f, 0.5f };
 	static const vec4 colorDead = vec4{ 1.0f, 0.2f, 0.1f, 0.5f };
 	const float lifeRatio = max(0.01f, (float)(hitPoints) / (MAX_HIT_POINTS));
 	lifebar->position = gameObject->position + vec2{ -50.0f, -50.0f };
 	lifebar->size = vec2{ lifeRatio * 80.0f, 5.0f };
-	lifebar->sprite->color = lerp(colorDead, colorAlive, lifeRatio);
+	lifebar->sprite->color = lerp(colorDead, colorAlive, lifeRatio);*/
 }
 
-void Spaceship::destroy()
+void PlayerCrosshair::destroy()
 {
-	Destroy(lifebar);
+	//Destroy(lifebar);
 }
 
-void Spaceship::onCollisionTriggered(Collider &c1, Collider &c2)
+void PlayerCrosshair::onCollisionTriggered(Collider &c1, Collider &c2)
 {
 	if (c2.type == ColliderType::Laser && c2.gameObject->tag != gameObject->tag)
 	{
@@ -115,25 +115,25 @@ void Spaceship::onCollisionTriggered(Collider &c1, Collider &c2)
 		{
 			NetworkDestroy(c2.gameObject); // Destroy the laser
 		
-			if (hitPoints > 0)
+			/*if (hitPoints > 0)
 			{
 				hitPoints--;
 				NetworkUpdate(gameObject);
-			}
+			}*/
 
 			float size = 30 + 50.0f * Random.next();
 			vec2 position = gameObject->position + 50.0f * vec2{Random.next() - 0.5f, Random.next() - 0.5f};
 
-			if (hitPoints <= 0)
-			{
-				// Centered big explosion
-				size = 250.0f + 100.0f * Random.next();
-				position = gameObject->position;
+			//if (hitPoints <= 0)
+			//{
+			//	// Centered big explosion
+			//	size = 250.0f + 100.0f * Random.next();
+			//	position = gameObject->position;
 
-				NetworkDestroy(gameObject);
-			}
+			//	NetworkDestroy(gameObject);
+			//}
 
-			GameObject *explosion = NetworkInstantiate();
+			/*GameObject *explosion = NetworkInstantiate();
 			explosion->netType = NetEntityType::Explosion;
 			explosion->position = position;
 			explosion->size = vec2{ size, size };
@@ -146,7 +146,7 @@ void Spaceship::onCollisionTriggered(Collider &c1, Collider &c2)
 			explosion->animation = App->modRender->addAnimation(explosion);
 			explosion->animation->clip = App->modResources->explosionClip;
 
-			NetworkDestroy(explosion, 2.0f);
+			NetworkDestroy(explosion, 2.0f);*/
 
 			// NOTE(jesus): Only played in the server right now...
 			// You need to somehow make this happen in clients
@@ -155,12 +155,12 @@ void Spaceship::onCollisionTriggered(Collider &c1, Collider &c2)
 	}
 }
 
-void Spaceship::write(OutputMemoryStream & packet)
+void PlayerCrosshair::write(OutputMemoryStream & packet)
 {
-	packet << hitPoints;
+	//packet << hitPoints;
 }
 
-void Spaceship::read(const InputMemoryStream & packet)
+void PlayerCrosshair::read(const InputMemoryStream & packet)
 {
-	packet >> hitPoints;
+	//packet >> hitPoints;
 }

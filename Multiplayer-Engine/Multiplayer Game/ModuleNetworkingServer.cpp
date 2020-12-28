@@ -105,9 +105,9 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				if (proxy != nullptr)
 				{
 					std::string playerName;
-					uint8 spaceshipType;
+					uint8 crosshairType;
 					packet >> playerName;
-					packet >> spaceshipType;
+					packet >> crosshairType;
 
 					proxy->address.sin_family = fromAddress.sin_family;
 					proxy->address.sin_addr.S_un.S_addr = fromAddress.sin_addr.S_un.S_addr;
@@ -118,8 +118,8 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 
 					// Create new network object
 					vec2 initialPosition = 500.0f * vec2{ Random.next() - 0.5f, Random.next() - 0.5f};
-					float initialAngle = 360.0f * Random.next();
-					proxy->gameObject = spawnPlayer(spaceshipType, initialPosition, initialAngle);
+					//float initialAngle = 360.0f * Random.next();
+					proxy->gameObject = spawnPlayer(crosshairType, initialPosition);
 				}
 				else
 				{
@@ -353,37 +353,30 @@ void ModuleNetworkingServer::destroyClientProxy(ClientProxy *clientProxy)
 // Spawning
 //////////////////////////////////////////////////////////////////////
 
-GameObject * ModuleNetworkingServer::spawnPlayer(uint8 spaceshipType, vec2 initialPosition, float initialAngle)
+GameObject * ModuleNetworkingServer::spawnPlayer(uint8 crosshairType, vec2 initialPosition)
 {
 	// Create a new game object with the player properties
 	GameObject *gameObject = NetworkInstantiate();
-	gameObject->netType = NetEntityType::Spaceship;
+	gameObject->netType = NetEntityType::Crosshair;
 	gameObject->position = initialPosition;
 	gameObject->size = { 100, 100 };
-	gameObject->angle = initialAngle;
+	//gameObject->angle = initialAngle;
+
+	// Create collider
+	//gameObject->collider = App->modCollision->addCollider(ColliderType::Player, gameObject);
+	//gameObject->collider->isTrigger = true; // NOTE(jesus): This object will receive onCollisionTriggered events
+
+	// Create behaviour
+	PlayerCrosshair* crossHairBh = App->modBehaviour->addCrosshair(gameObject);
+	crossHairBh->reticle = App->modBehaviour->GetCrosshairRects(crosshairType);
+	gameObject->behaviour = crossHairBh;
+	gameObject->behaviour->isServer = true;
 
 	// Create sprite
 	gameObject->sprite = App->modRender->addSprite(gameObject);
 	gameObject->sprite->order = 5;
-	if (spaceshipType == 0) {
-		gameObject->sprite->texture = App->modResources->spacecraft1;
-	}
-	else if (spaceshipType == 1) {
-		gameObject->sprite->texture = App->modResources->spacecraft2;
-	}
-	else {
-		gameObject->sprite->texture = App->modResources->spacecraft3;
-	}
-
-	// Create collider
-	gameObject->collider = App->modCollision->addCollider(ColliderType::Player, gameObject);
-	gameObject->collider->isTrigger = true; // NOTE(jesus): This object will receive onCollisionTriggered events
-
-	// Create behaviour
-	Spaceship * spaceshipBehaviour = App->modBehaviour->addSpaceship(gameObject);
-	spaceshipBehaviour->spaceShipType = spaceshipType;
-	gameObject->behaviour = spaceshipBehaviour;
-	gameObject->behaviour->isServer = true;
+	gameObject->sprite->texture = App->modResources->tex_crosshairs_ss;
+	gameObject->sprite->clipRect = crossHairBh->reticle.reticle_outside;
 
 	return gameObject;
 }

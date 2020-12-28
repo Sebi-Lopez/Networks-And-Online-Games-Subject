@@ -102,6 +102,19 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 	NetEntityType type;
 	packet >> type;
 
+	// Check if the array of network game objects is full there 
+	// In any case, if they sent you to create an obj, that means that the server 
+	// destroyed the object that was there, and the packet was lost, so it will be destroyed later anyways 
+
+	GameObject* obj = App->modLinkingContext->getNetworkGameObject(networkId, false);
+	if (obj != nullptr)
+	{
+		LOG("There is an object in the position you are trying to create a new one. Deleting.");
+		App->modLinkingContext->unregisterNetworkGameObject(obj);
+		Destroy(obj);
+	}
+
+
 	switch (type)
 	{
 	case NetEntityType::Spaceship:

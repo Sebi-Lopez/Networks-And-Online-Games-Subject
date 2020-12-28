@@ -293,8 +293,26 @@ void ModuleNetworkingServer::onUpdate()
 					//LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
 
 					LOG("Resending Must-Send Commands - %i", clientProxy.replication.mustReSendList.size());
+					
+					for (std::list<ReplicationCommand>::iterator iter = clientProxy.replication.mustReSendList.begin(); iter != clientProxy.replication.mustReSendList.end(); ++iter)
+					{
+						switch ((*iter).action)
+						{
+						case ReplicationAction::Create:
+							LOG("Create - %i", (*iter).networkId);
+							break;
+						case ReplicationAction::Destroy:
+							LOG("Destroy - %i", (*iter).networkId);
+							break;
+						case ReplicationAction::Update:
+							LOG("Update - %i", (*iter).networkId);
+							break;
+						}
+					}
+					
 					// Actual replication
 					clientProxy.replication.Write(commandsPacket, &clientProxy.deliveryManager, clientProxy.replication.mustReSendList);
+					clientProxy.replication.mustReSendList.clear();
 
 					sendPacket(commandsPacket, clientProxy.address);
 				}

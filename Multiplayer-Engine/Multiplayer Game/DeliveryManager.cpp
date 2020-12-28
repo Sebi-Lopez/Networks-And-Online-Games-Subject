@@ -93,8 +93,10 @@ void DeliveryManager::ProcessAckdSequenceNumbers(const InputMemoryStream& packet
 	}
 }
 
-void DeliveryManager::ProcessTimedOutPackets()
+bool DeliveryManager::ProcessTimedOutPackets(ReplicationManagerServer* replication)
 {
+	bool ret = false; 
+
 	for (std::list<Delivery*>::iterator iter = pendingDeliveries.begin(); iter != pendingDeliveries.end(); )
 	{
 		if ((Time.time - (*iter)->dispatchTime) >= PACKET_DELIVERY_TIMEOUT_SECONDS)
@@ -103,7 +105,8 @@ void DeliveryManager::ProcessTimedOutPackets()
 			if ((*iter)->deliveryDelegate != nullptr)
 			{
 				WLOG("Timed out a package with a delivery delegate!");
-				(*iter)->deliveryDelegate->OnDeliveryFailure(this);
+				(*iter)->deliveryDelegate->OnDeliveryFailure(this, replication);
+				ret = true; 
 			}
 
 			// Remove it
@@ -113,26 +116,20 @@ void DeliveryManager::ProcessTimedOutPackets()
 		}
 		++iter;
 	}
+	return ret; 
 }
 
-void DeliveryMustSend::OnDeliverySuccess(DeliveryManager* deliveryManager)
+void DeliveryMustSend::OnDeliverySuccess(DeliveryManager* deliveryManager, ReplicationManagerServer* replication)
 {
 	// Nothing i guess
 }
 
-void DeliveryMustSend::OnDeliveryFailure(DeliveryManager* deliveryManager)
+void DeliveryMustSend::OnDeliveryFailure(DeliveryManager* deliveryManager, ReplicationManagerServer* replication)
 {
 	WLOG("Sending an IMPORTANT failed package again!");
 
-	// Here we must send again the package
-	// NOOOT FCKING ACCESSSSSSSSSSSSSS
-	/*OutputMemoryStream commandsPacket;
-	commandsPacket << PROTOCOL_ID;
-	commandsPacket << ClientMessage::Replication;
+	// Add the list of required sends in the delivery to the replication manager, it will send them later
+	// https://stackoverflow.com/questions/1449703/how-to-append-a-listt-object-to-another
+	replication->mustReSendList.splice(replication->mustReSendList.end(), delivery->mustSendCommands);
 
-	commandsPacket << proxy->nextExpectedInputSequenceNumber;
-
-	proxy->replication.Write(commandsPacket, &proxy->deliveryManager, delivery->mustSendCommands);*/
-
-	//sendPacket(commandsPacket, proxy->address);
 }

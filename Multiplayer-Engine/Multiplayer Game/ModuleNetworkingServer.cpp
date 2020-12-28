@@ -281,7 +281,23 @@ void ModuleNetworkingServer::onUpdate()
 				}
 
 				// TODO(you): Reliability on top of UDP lab session
-				clientProxy.deliveryManager.ProcessTimedOutPackets();
+				if (clientProxy.deliveryManager.ProcessTimedOutPackets(&clientProxy.replication))
+				{
+
+					OutputMemoryStream commandsPacket;
+					commandsPacket << PROTOCOL_ID;
+					commandsPacket << ClientMessage::Replication;
+
+					// Sneakily Input notification
+					commandsPacket << clientProxy.nextExpectedInputSequenceNumber;
+					//LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
+
+					LOG("Resending Must-Send Commands - %i", clientProxy.replication.mustReSendList.size());
+					// Actual replication
+					clientProxy.replication.Write(commandsPacket, &clientProxy.deliveryManager, clientProxy.replication.mustReSendList);
+
+					sendPacket(commandsPacket, clientProxy.address);
+				}
 			}
 		}
 		if (sendPing)

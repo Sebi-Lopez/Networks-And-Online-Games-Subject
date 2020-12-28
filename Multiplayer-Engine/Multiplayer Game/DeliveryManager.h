@@ -8,13 +8,14 @@
 class DeliveryManager;
 class Delivery;
 class ReplicationCommand;
+class ReplicationManagerServer; 
 
 class DeliveryDelegate {
 
 public:
 
-	virtual void OnDeliverySuccess(DeliveryManager* deliveryManager) = 0;
-	virtual void OnDeliveryFailure(DeliveryManager* deliveryManager) = 0;
+	virtual void OnDeliverySuccess(DeliveryManager* deliveryManager, ReplicationManagerServer* replication = nullptr) = 0;
+	virtual void OnDeliveryFailure(DeliveryManager* deliveryManager, ReplicationManagerServer* replication = nullptr) = 0;
 
 	Delivery* delivery = nullptr; 
 };
@@ -27,8 +28,8 @@ public:
 		delivery = myDelivery;
 	}
 
-	void OnDeliverySuccess(DeliveryManager* deliveryManager) override;
-	void OnDeliveryFailure(DeliveryManager* deliveryManager) override;
+	void OnDeliverySuccess(DeliveryManager* deliveryManager, ReplicationManagerServer* replication) override;
+	void OnDeliveryFailure(DeliveryManager* deliveryManager, ReplicationManagerServer* replication) override;
 
 };
 
@@ -69,9 +70,9 @@ public:
 
 	// For senders to process acknowladged seq. numbers from a packet 
 	void ProcessAckdSequenceNumbers(const InputMemoryStream& packet);
-	void ProcessTimedOutPackets();
+	bool ProcessTimedOutPackets(ReplicationManagerServer* replication);
 
-	void Clear();
+	//void Clear();
 
 private:
 

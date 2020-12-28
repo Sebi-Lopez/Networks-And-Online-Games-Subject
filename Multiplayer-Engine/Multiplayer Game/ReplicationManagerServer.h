@@ -25,6 +25,7 @@ public:
 	void Write(OutputMemoryStream& packet, DeliveryManager* deliveryManager, std::list<ReplicationCommand>& commands);
 
 	std::list<ReplicationCommand> commandsList; 
+	std::list<ReplicationCommand> mustReSendList; 
 
 	//ReplicationCommand actions[MAX_NETWORK_OBJECTS]; // waste, maybe only need the current objects to modify
 	//std::map<uint32, ReplicationCommand> actions;

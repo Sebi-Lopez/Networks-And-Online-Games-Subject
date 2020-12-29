@@ -60,6 +60,40 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 	NetEntityType type;
 	packet >> type;
 
+	// We need to get the data out, so the reading of the next 
+	// replication isnt corrupted in case there is no object
+
+	vec2 position;
+	float angle;
+	uint8 hitPoints;
+
+	switch (type)
+	{
+	case NetEntityType::None:
+		break;
+	case NetEntityType::Spaceship:
+	{
+		packet >> hitPoints;
+
+		packet >> position.x;
+		packet >> position.y;
+		packet >> angle;
+		break;
+	}
+	case NetEntityType::Laser:
+	{
+		packet >> position.x;
+		packet >> position.y;
+		packet >> angle;
+		break;
+	}
+	default:
+		break;
+	}
+
+	// Once we got the data out, we figure out if the object is already created 
+	// If there's no object, we are still waiting for the creation packet that might be dropped 
+
 	GameObject* obj2U = App->modLinkingContext->getNetworkGameObject(networkId);
 	if (obj2U == nullptr)
 	{
@@ -73,20 +107,17 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 		break;
 	case NetEntityType::Spaceship:
 	{
-
 		Spaceship* ss = dynamic_cast<Spaceship*>(obj2U->behaviour);
-		packet >> ss->hitPoints;
-		
-		packet >> obj2U->position.x;
-		packet >> obj2U->position.y;
-		packet >> obj2U->angle;
+		ss->hitPoints = hitPoints;
+
+		obj2U->position = position;
+		obj2U->angle = angle;
 		break;
 	}
 	case NetEntityType::Laser:
 	{
-		packet >> obj2U->position.x;
-		packet >> obj2U->position.y;
-		packet >> obj2U->angle;
+		obj2U->position = position;
+		obj2U->angle = angle;
 		break;
 	}
 	default:

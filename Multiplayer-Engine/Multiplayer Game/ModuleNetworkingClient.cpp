@@ -27,7 +27,6 @@ const PlayerInfo ModuleNetworkingClient::GetPlayerInfo() const
 }
 
 
-
 //////////////////////////////////////////////////////////////////////
 // ModuleNetworking virtual methods
 //////////////////////////////////////////////////////////////////////
@@ -65,6 +64,7 @@ void ModuleNetworkingClient::onGui()
 {
 	if (state == ClientState::Stopped) return;
 
+	
 	if (ImGui::CollapsingHeader("ModuleNetworkingClient", ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		if (state == ClientState::Connecting)
@@ -104,6 +104,13 @@ void ModuleNetworkingClient::onGui()
 
 			ImGui::Text("Input:");
 			ImGui::InputFloat("Delivery interval (s)", &inputDeliveryIntervalSeconds, 0.01f, 0.1f, 4);
+
+			ImGui::Separator();
+
+			if (ImGui::Checkbox("Use Entity Interpolation", &entity_interpolation))
+			{
+				repMan.using_entity_interpolation = entity_interpolation;
+			}
 		}
 	}
 }
@@ -256,6 +263,14 @@ void ModuleNetworkingClient::onUpdate()
 		}
 
 		// TODO(you): Latency management lab session
+
+		// Interpolate every object position every frame
+		if (entity_interpolation)
+		{
+			for (GameObject& gameObject : App->modGameObject->gameObjects)
+				if(gameObject.networkId != 0)
+					gameObject.Interpolate();
+		}
 
 		// Update camera for player
 		GameObject *playerGameObject = App->modLinkingContext->getNetworkGameObject(networkId);

@@ -110,8 +110,15 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 		Spaceship* ss = dynamic_cast<Spaceship*>(obj2U->behaviour);
 		ss->hitPoints = hitPoints;
 
-		obj2U->position = position;
-		obj2U->angle = angle;
+		if (using_entity_interpolation) {
+			obj2U->UpdateInterpolationValues(position, angle);
+		}
+		else
+		{
+			obj2U->position = position;
+			obj2U->angle = angle;
+		}
+
 		break;
 	}
 	case NetEntityType::Laser:
@@ -157,6 +164,13 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 		packet >> newObj->position.x;
 		packet >> newObj->position.y;
 		packet >> newObj->angle;
+		
+		newObj->initial_pos = newObj->position;
+		newObj->initial_angle = newObj->angle;
+
+		newObj->final_pos = newObj->position;
+		newObj->final_angle = newObj->angle;
+
 		newObj->size = { 100, 100 };
 
 		// Create sprite

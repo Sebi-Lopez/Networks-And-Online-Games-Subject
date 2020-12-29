@@ -117,6 +117,7 @@ private:
 	//////////////////////////////////////////////////////////////////////
 
 	// TODO(you): Latency management lab session
-
+public:
+	bool entity_interpolation = true;
 };
 

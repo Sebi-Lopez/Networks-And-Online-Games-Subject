@@ -106,6 +106,35 @@ void ModuleGameObject::Destroy(GameObject * gameObject, float delaySeconds)
 	}
 }
 
+void GameObject::UpdateInterpolationValues(vec2 pos, float _angle)
+{
+	// The initial data is our current state
+	initial_pos = position;
+	initial_angle = angle;
+
+	// Set the final interpolation values to the replication data
+	final_pos = pos;
+	final_angle = _angle;
+
+	// Set timer to 0
+	seconds_passed = 0.0f;
+}
+void GameObject::Interpolate()
+{
+	if (netType != NetEntityType::Spaceship) // The other entities cant really interpolate
+		return; 
+
+	// Get the percentage of interpolation depending replication interval time
+	seconds_passed += Time.deltaTime;
+	float percentage = seconds_passed / REPLICATION_INTERVAL;
+
+	if (percentage <= 1)
+	{
+		position = lerp(initial_pos, final_pos, percentage);
+		angle = lerp(initial_angle, final_angle, percentage);
+	}
+}
+
 GameObject * Instantiate()
 {
 	GameObject *result = ModuleGameObject::Instantiate();

@@ -2,6 +2,7 @@
 #include "Networks.h"
 
 GameObject* background01 = nullptr;
+GameObject* windowManager = nullptr;
 
 void ScreenGame::enable()
 {
@@ -22,7 +23,15 @@ void ScreenGame::enable()
 	background01->sprite->texture = App->modResources->tex_sunset_background;
 	background01->sprite->order = -1;
 	//background01->sprite->clipRect = { 0,0, 256, 256 };
-	//background01->size = { 256,256 };
+	//vec2 vp = App->modRender->GetViewportSize();
+	//background01->size = { vp.x, vp.y };
+
+	windowManager = Instantiate();
+	App->modBehaviour->addBehaviour(BehaviourType::window_manager, windowManager);
+
+
+
+
 	
 	/*spaceTopRight = Instantiate();
 	spaceTopRight->sprite = App->modRender->addSprite(spaceTopRight);
@@ -65,6 +74,7 @@ void ScreenGame::gui()
 void ScreenGame::disable()
 {
 	Destroy(background01);
+	Destroy(windowManager);
 	/*Destroy(spaceTopLeft);
 	Destroy(spaceTopRight);
 	Destroy(spaceBottomLeft);

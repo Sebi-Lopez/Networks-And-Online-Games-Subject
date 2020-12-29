@@ -3,6 +3,85 @@
 
 
 
+void CowboyWindowManager::start()
+{
+	// create necessary rects for window and different enemies/hostages
+	vec4 windowsPositions[MAX_SPAWN_WINDOWS];
+	windowsPositions[0] = { 354, 0 };
+	windowsPositions[1] = { 662, 0 };
+	windowsPositions[2] = { 946, 0 };
+	windowsPositions[3] = { 380, 308 };
+	windowsPositions[4] = { 946, 308 };
+
+	for (int i = 0; i < MAX_SPAWN_WINDOWS; ++i)
+	{
+		windows[i].window = Instantiate();
+		windows[i].window->position = { windowsPositions[i].x - 1280*0.5f, windowsPositions[i].y - 720*0.5f };
+
+		windows[i].window->sprite = App->modRender->addSprite(windows[i].window);
+		windows[i].window->sprite->texture = App->modResources->tex_cowboy_window;
+		windows[i].window->sprite->clipRect = { 358, 358, 154, 154};
+		windows[i].window->sprite->pivot = { 0,0 };
+		windows[i].window->size = { 154,154 };
+	}
+
+	CloseAllWindows();
+
+	/*OpenWindow(3);
+	OpenWindow(2);*/
+
+	// targets
+	targetsRects[0].spawnRect = { 0,0, 113, 129};
+}
+
+void CowboyWindowManager::CloseAllWindows()
+{
+	for (int i = 0; i < MAX_SPAWN_WINDOWS; ++i)
+	{
+		windows[i].state = WindowState::closed;
+		windows[i].window->sprite->color = { 1.0f, 1.0f, 1.0f, 0.0f };
+	}
+}
+
+void CowboyWindowManager::OpenWindow(uint8 n)
+{
+	windows[n].state = WindowState::open;
+	windows[n].window->sprite->color = { 1.0f, 1.0f, 1.0f, 1.0f };
+}
+
+void CowboyWindowManager::onMouse(const MouseController& mouse)
+{
+
+}
+
+void CowboyWindowManager::update()
+{
+
+
+	if (!isServer)
+		return;
+
+
+
+}
+
+void CowboyWindowManager::destroy()
+{
+
+}
+
+void CowboyWindowManager::write(OutputMemoryStream& packet)
+{
+	// WIP
+}
+
+void CowboyWindowManager::read(const InputMemoryStream& packet)
+{
+	// WIP
+}
+
+
+
 //void Laser::start()
 //{
 //	gameObject->networkInterpolationEnabled = false;

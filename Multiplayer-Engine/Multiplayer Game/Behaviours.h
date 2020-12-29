@@ -1,5 +1,6 @@
 #pragma once
 
+#define MAX_SPAWN_WINDOWS 5
 
 enum class BehaviourType : uint8;
 
@@ -32,6 +33,8 @@ enum class BehaviourType : uint8
 {
 	None,
 	crosshair,
+	window_manager,
+	cowboy_window,
 	max
 };
 
@@ -64,6 +67,55 @@ struct PlayerCrosshair : public Behaviour
 	void write(OutputMemoryStream &packet) override;
 
 	void read(const InputMemoryStream &packet) override;
+};
+
+enum class WindowState
+{
+	none, closed, open, max
+};
+
+struct CowboyWindow
+{
+	GameObject* window = nullptr;
+	WindowState state;
+};
+
+struct Targets
+{
+	vec4 spawnRect = {};
+	vec4 deathRect = {};
+};
+
+struct CowboyWindowManager : public Behaviour // 
+{
+
+	CowboyWindow windows[MAX_SPAWN_WINDOWS]; // store windows gameobjects
+
+	Targets targetsRects[1]; // store enemie/hostage rects
+
+	BehaviourType type() const override { return BehaviourType::window_manager; }
+
+	void start() override;
+
+
+	//void onInput(const InputController& input) override;
+	void onMouse(const MouseController& mouse) override;
+
+	void update() override;
+
+	void destroy() override;
+
+	//void onCollisionTriggered(Collider& c1, Collider& c2) override;
+
+	void write(OutputMemoryStream& packet) override;
+
+	void read(const InputMemoryStream& packet) override;
+
+	// ---------------------- 
+
+	void CloseAllWindows();
+	void OpenWindow(uint8 n);
+
 };
 
 

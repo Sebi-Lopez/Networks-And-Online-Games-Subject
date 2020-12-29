@@ -15,7 +15,20 @@ bool ModuleBehaviour::start()
 	crosshairTypeRects[2].reticle_outside = { 512, 0, 256, 256 };
 	crosshairTypeRects[2].reticle_hit = { 512, 256, 256, 256 };
 
-	return true;
+	crosshairTypeRects[3].crosshairType = 3;
+	crosshairTypeRects[3].reticle_outside = { 768, 0, 256, 256 };
+	crosshairTypeRects[3].reticle_hit = { 768, 256, 256, 256 };
+
+	crosshairTypeRects[4].crosshairType = 4;
+	crosshairTypeRects[4].reticle_outside = { 256, 512, 256, 256 };
+	crosshairTypeRects[4].reticle_hit = { 512, 512, 256, 256 };
+
+	crosshairTypeRects[5].crosshairType = 5;
+	crosshairTypeRects[5].reticle_outside = { 0, 512, 256, 256 };
+	crosshairTypeRects[5].reticle_hit = { 0, 768, 256, 256 };
+
+
+ 	return true;
 }
 
 bool ModuleBehaviour::update()
@@ -35,21 +48,42 @@ bool ModuleBehaviour::update()
 		handleBehaviourLifeCycle(&behaviour);
 	}
 
+	
+	handleBehaviourLifeCycle(&winManager);
+	
+
+
 	return true;
 }
 
 Behaviour *ModuleBehaviour::addBehaviour(BehaviourType behaviourType, GameObject *parentGameObject)
 {
-	/*switch (behaviourType)
+	switch (behaviourType)
 	{
-	case BehaviourType::Spaceship:
-		return addSpaceship(parentGameObject);
-	case BehaviourType::Laser:
-		return addLaser(parentGameObject);
+	case BehaviourType::crosshair:
+		return addCrosshair(parentGameObject);
+	case BehaviourType::window_manager:
+		return addWinMan(parentGameObject);
+	/*case BehaviourType::Laser:
+		return addLaser(parentGameObject);*/
 	default:
 		return nullptr;
-	}*/
+	}
 
+	return nullptr;
+}
+
+CowboyWindowManager* ModuleBehaviour::addWinMan(GameObject* parentGo)
+{
+	if (winManager.gameObject == nullptr)
+	{
+		winManager = {};
+		winManager.gameObject = parentGo;
+		parentGo->behaviour = &winManager;
+		return &winManager;
+	}
+
+	ASSERT(false);
 	return nullptr;
 }
 

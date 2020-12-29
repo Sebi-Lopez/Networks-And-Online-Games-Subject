@@ -27,6 +27,7 @@ bool ModuleResources::init()
 #else
 	loadTextureAsync("sunsetr_background2.png", &tex_sunset_background);
 	loadTextureAsync("crosshairs_v01.png", &tex_crosshairs_ss);
+	loadTextureAsync("cowboywindow2.png", &tex_cowboy_window);
 	
 	//loadTextureAsync("sunsetr_background.png", &space);
 	loadTextureAsync("asteroid1.png",        &asteroid1);

@@ -12,6 +12,7 @@ public:
 
 	Texture *tex_sunset_background = nullptr;
 	Texture* tex_crosshairs_ss = nullptr;
+	Texture* tex_cowboy_window = nullptr;
 
 	Texture *asteroid1 = nullptr;
 	Texture *asteroid2 = nullptr;

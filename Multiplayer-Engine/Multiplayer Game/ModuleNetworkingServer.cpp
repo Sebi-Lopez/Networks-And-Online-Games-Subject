@@ -338,15 +338,16 @@ void ModuleNetworkingServer::onDisconnect()
 {
 	uint16 netGameObjectsCount;
 	GameObject *netGameObjects[MAX_NETWORK_OBJECTS];
+
+	for (ClientProxy& clientProxy : clientProxies)
+	{
+		destroyClientProxy(&clientProxy);
+	}
+
 	App->modLinkingContext->getNetworkGameObjects(netGameObjects, &netGameObjectsCount);
 	for (uint32 i = 0; i < netGameObjectsCount; ++i)
 	{
 		NetworkDestroy(netGameObjects[i]);
-	}
-
-	for (ClientProxy &clientProxy : clientProxies)
-	{
-		destroyClientProxy(&clientProxy);
 	}
 	
 	nextClientId = 0;
@@ -551,6 +552,10 @@ void NetworkDestroy(GameObject * gameObject)
 
 void NetworkDestroy(GameObject * gameObject, float delaySeconds)
 {
+	// If the server is down, dont do anything (you laser/explosion), you will be/are destroyed anyways
+	if (!App->modNetServer->isConnected())
+		return;
+
 	ASSERT(App->modNetServer->isConnected());
 	ASSERT(gameObject->networkId != 0);
 

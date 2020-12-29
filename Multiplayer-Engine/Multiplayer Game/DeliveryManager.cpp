@@ -119,6 +119,16 @@ bool DeliveryManager::ProcessTimedOutPackets(ReplicationManagerServer* replicati
 	return ret; 
 }
 
+void DeliveryManager::Clear()
+{
+	// Client Side Clear 
+	nextExpectedSequenceNumber = 0;
+	pendingAcks.clear();
+
+	// Server Side Clear Needed?? 
+
+}
+
 void DeliveryMustSend::OnDeliverySuccess(DeliveryManager* deliveryManager, ReplicationManagerServer* replication)
 {
 	// Nothing i guess

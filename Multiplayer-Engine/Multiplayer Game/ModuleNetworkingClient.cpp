@@ -289,5 +289,7 @@ void ModuleNetworkingClient::onDisconnect()
 		Destroy(networkGameObjects[i]);
 	}
 
+	deliveryManagerClient.Clear();
+
 	App->modRender->cameraPosition = {};
 }

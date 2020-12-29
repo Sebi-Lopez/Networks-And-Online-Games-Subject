@@ -72,7 +72,7 @@ public:
 	void ProcessAckdSequenceNumbers(const InputMemoryStream& packet);
 	bool ProcessTimedOutPackets(ReplicationManagerServer* replication);
 
-	//void Clear();
+	void Clear();
 
 private:
 

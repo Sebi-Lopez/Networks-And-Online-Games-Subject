@@ -19,7 +19,7 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 			GameObject* obj = App->modLinkingContext->getNetworkGameObject(nextCommand.networkId);
 			if (obj == nullptr) {
 				ELOG("Replication create server: Object not found");
-				return;
+				break;
 			}
 
 			packet << obj->networkId;
@@ -49,6 +49,11 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 		case ReplicationAction::Update:
 		{
 			GameObject* obj = App->modLinkingContext->getNetworkGameObject(nextCommand.networkId);
+
+			if (obj == nullptr) {
+				ELOG("Replication UPDATE server: Object not found");
+				break;
+			}
 
 			packet << obj->networkId;
 			packet << nextCommand.action;

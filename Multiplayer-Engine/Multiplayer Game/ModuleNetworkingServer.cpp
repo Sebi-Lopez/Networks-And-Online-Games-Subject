@@ -312,7 +312,6 @@ void ModuleNetworkingServer::onUpdate()
 					
 					// Actual replication
 					clientProxy.replication.Write(commandsPacket, &clientProxy.deliveryManager, clientProxy.replication.mustReSendList);
-					clientProxy.replication.mustReSendList.clear();
 
 					sendPacket(commandsPacket, clientProxy.address);
 				}

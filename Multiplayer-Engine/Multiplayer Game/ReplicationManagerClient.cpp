@@ -28,24 +28,22 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 		}
 		case ReplicationAction::Destroy:
 		{
+			// check if its our spaceship
+			if (networkId == App->modNetClient->GetNetworkID())
+			{
+				ELOG("Your ship should be destroyed.");
+				WLOG("KICKED: you are killed");
+				NetworkDisconnect();
+				//App->modNetClient->disconnect();
+			}
+
 			GameObject* obj = App->modLinkingContext->getNetworkGameObject(networkId);
 			if (obj == nullptr)
 			{
 				WLOG("GAMEOBJECT TO DESTROY NOT FOUND!");
 				break;
 			}
-			// check if is our spaceship
-			
-			if (obj->netType == NetEntityType::Spaceship)
-			{
-				if (obj->networkId == App->modNetClient->GetNetworkID())
-				{
-					WLOG("KICKED: you are killed");
-					NetworkDisconnect();
-					//App->modNetClient->disconnect();
-				}
-			}
-			
+						
 			App->modLinkingContext->unregisterNetworkGameObject(obj);
 			Destroy(obj);
 			break;

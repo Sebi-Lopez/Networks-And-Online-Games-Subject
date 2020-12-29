@@ -10,6 +10,8 @@ public:
 	const char *playerName = "player";
 	uint8 spaceshipType = 0;
 
+	GameObject* windowManager = nullptr;
+
 private:
 
 	void enable() override;

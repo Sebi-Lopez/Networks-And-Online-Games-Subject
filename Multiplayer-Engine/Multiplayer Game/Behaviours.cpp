@@ -23,30 +23,32 @@ void CowboyWindowManager::start()
 		windows[i].window->sprite->clipRect = { 358, 358, 154, 154};
 		windows[i].window->sprite->pivot = { 0,0 };
 		windows[i].window->size = { 154,154 };
+		//windows[i].window->sprite->order = 3;
+
+		windows[i].winMan = this;
+		windows[i].window_id = (uint8)i;
 	}
+
+	// targets
+	targetsRects[0].spawnRect = { 0,0, 113, 129 };
 
 	CloseAllWindows();
 
-	/*OpenWindow(3);
-	OpenWindow(2);*/
+	//OpenWindow(3);
+	//OpenWindow(2);
 
-	// targets
-	targetsRects[0].spawnRect = { 0,0, 113, 129};
 }
 
 void CowboyWindowManager::CloseAllWindows()
 {
 	for (int i = 0; i < MAX_SPAWN_WINDOWS; ++i)
-	{
-		windows[i].state = WindowState::closed;
-		windows[i].window->sprite->color = { 1.0f, 1.0f, 1.0f, 0.0f };
-	}
+		windows[i].Close();
+	
 }
 
 void CowboyWindowManager::OpenWindow(uint8 n)
 {
-	windows[n].state = WindowState::open;
-	windows[n].window->sprite->color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	windows[n].Open();
 }
 
 void CowboyWindowManager::onMouse(const MouseController& mouse)
@@ -61,8 +63,61 @@ void CowboyWindowManager::update()
 	if (!isServer)
 		return;
 
+	GameLoopUpdate();
 
+}
 
+void CowboyWindowManager::SpawnLogic()
+{
+	if (current_opened_windows < max_opened_windows)
+	{	
+		// TODO: filter by random possibility + interval from last spawn
+		if (last_window_closed_time + min_interval_between_spawns_close > Time.time ||
+			last_window_opened_time + min_interval_between_spawns_open > Time.time)
+			return;
+
+		// collect disponible windows to spawn
+		std::vector<int> dispWindows;
+		for (uint8 i = 0; i < MAX_SPAWN_WINDOWS; ++i)	{
+			if (windows[i].state == WindowState::closed)
+				dispWindows.push_back(i);
+		}
+
+		// get one random disponible window
+		int dispSize = dispWindows.size();
+		int vecPos = last_window_closed_id;
+
+		while(vecPos == last_window_closed_id)
+			vecPos = (int)floor(Random.next() * dispSize);
+	
+		windows[dispWindows[vecPos]].Open();
+	}
+}
+
+void CowboyWindowManager::GameLoopUpdate() // server side
+{
+	switch (gameLoopState)
+	{
+	case GameState::none: 
+		// TODO: here we need to check if all clientproxies are ready first
+		gameLoopState = GameState::started; 
+		break;
+	case GameState::started:
+		SpawnLogic();
+		UpdateActiveWindows();
+		break;
+	default:
+		break;
+	}
+}
+
+void CowboyWindowManager::UpdateActiveWindows()
+{
+	for (uint8 i = 0; i < MAX_SPAWN_WINDOWS; ++i)
+	{
+		if (windows[i].state == WindowState::open)
+			windows[i].Update();
+	}
 }
 
 void CowboyWindowManager::destroy()
@@ -265,3 +320,88 @@ void PlayerCrosshair::read(const InputMemoryStream & packet)
 {
 	//packet >> hitPoints;
 }
+
+// --------------------- WINDOW itself logic ------------------------------------
+
+void CowboyWindow::Update()
+{
+	if (Time.time > spawned_at + lifetime)
+	{
+		Close();
+		
+	}
+}
+
+void CowboyWindow::Open()
+{
+	state = WindowState::open;
+	window->sprite->color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+	spawned_at = Time.time;
+	float min_lifetime = 0.6f; // sec
+	lifetime = max_lifetime * Random.next();
+
+	if (lifetime < min_lifetime)
+		lifetime = min_lifetime;
+
+	// get one random enemy
+
+	if (target == nullptr)	 // if target is still not created
+	{
+		target = Instantiate();
+		vec2 windowPos = window->position;
+		vec2 windowSize = window->size;
+
+		target->position = { windowPos.x + windowSize.x * 0.5f, windowPos.y + windowSize.y * 0.5f };
+		// TODO: get the offset from some place based on enemy type
+		vec2 offset = { 13, -9 }; // valid for all bads, not the hostages
+		target->position.x += offset.x;
+		target->position.y += offset.y;
+	}
+
+	if (target->sprite == nullptr)
+	{
+		target->sprite = App->modRender->addSprite(target);
+		target->sprite->texture = App->modResources->tex_cowboy_window;
+		target->sprite->order = window->sprite->order + 1;
+	}
+
+	currentEnemyType = EnemyType::none;
+	target->sprite->color = { 1.0f, 1.0f, 1.0f, 1.0f };
+	target->sprite->clipRect = GetRandomEnemy(currentEnemyType);
+	target->size = { target->sprite->clipRect.z, target->sprite->clipRect.w };
+	//target->sprite->pivot = { 0,0 };
+
+	winMan->current_opened_windows++;
+	winMan->last_window_opened_time = Time.time;
+}
+
+void CowboyWindow::Close()
+{
+	window->sprite->color = { 1.0f, 1.0f, 1.0f, 0.0f };
+
+	currentEnemyType = EnemyType::none;
+
+	if (target != nullptr)
+	{
+		target->sprite->color = { 1.0f, 1.0f, 1.0f, 0.0f };
+	}
+
+	if(state == WindowState::open)
+		winMan->current_opened_windows--;
+
+	state = WindowState::closed;
+
+	winMan->last_window_closed_id = window_id;
+	winMan->last_window_closed_time = Time.time;
+
+}
+
+vec4 CowboyWindow::GetRandomEnemy(EnemyType& type)
+{
+	// TODO: finish
+	type = EnemyType(1);
+	vec4 ret = winMan->targetsRects[0].spawnRect;
+	return ret;
+}
+

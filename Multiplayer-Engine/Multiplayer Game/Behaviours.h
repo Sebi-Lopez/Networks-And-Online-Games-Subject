@@ -3,6 +3,7 @@
 #define MAX_SPAWN_WINDOWS 5
 
 enum class BehaviourType : uint8;
+struct CowboyWindowManager;
 
 struct Behaviour
 {
@@ -69,15 +70,40 @@ struct PlayerCrosshair : public Behaviour
 	void read(const InputMemoryStream &packet) override;
 };
 
+enum class GameState
+{
+	none, waiting, countdown, started, finished, max
+};
+
 enum class WindowState
 {
 	none, closed, open, max
 };
 
+enum class EnemyType : uint8
+{
+	none, bad1, bad2, bad3, hostage1, hostage2, max
+};
+
 struct CowboyWindow
 {
-	GameObject* window = nullptr;
+	uint8 window_id = 0;
+	CowboyWindowManager* winMan = nullptr; 
+	GameObject* window = nullptr; // window opened
+	GameObject* target = nullptr; // enemy/hostage
 	WindowState state;
+	EnemyType currentEnemyType = EnemyType::none;
+
+	float max_lifetime = 2.0f; // max lifetime to despawn this target
+	float spawned_at = 0.0f; // store spawn time
+	float lifetime = 0.0f;
+
+	void Open();
+	void Close();
+	void Update();
+
+	vec4 GetRandomEnemy(EnemyType& type);
+	
 };
 
 struct Targets
@@ -86,12 +112,32 @@ struct Targets
 	vec4 deathRect = {};
 };
 
-struct CowboyWindowManager : public Behaviour // 
+struct CowboyWindowManager : public Behaviour
 {
+
+	GameState gameLoopState = GameState::none;
+
+	uint8 max_opened_windows = 3;
+	uint8 current_opened_windows = 0;
+	uint8 last_window_closed_id = 0; // stores id from windows arrays to not repeat the last closed window
+	float last_window_closed_time = 0.0f;
+	float last_window_opened_time = 0.0f;
+	float min_interval_between_spawns_close = 0.5f;
+	float min_interval_between_spawns_open = 0.7f;
+
+	uint32 average_time_between_spawns = 1000;
+
+	uint32 countdown_duration = 5000;
+	uint32 game_duration = 10000;
+
 
 	CowboyWindow windows[MAX_SPAWN_WINDOWS]; // store windows gameobjects
 
+	//
+
 	Targets targetsRects[1]; // store enemie/hostage rects
+
+	//
 
 	BehaviourType type() const override { return BehaviourType::window_manager; }
 
@@ -112,6 +158,10 @@ struct CowboyWindowManager : public Behaviour //
 	void read(const InputMemoryStream& packet) override;
 
 	// ---------------------- 
+
+	void GameLoopUpdate();
+	void SpawnLogic();
+	void UpdateActiveWindows();
 
 	void CloseAllWindows();
 	void OpenWindow(uint8 n);

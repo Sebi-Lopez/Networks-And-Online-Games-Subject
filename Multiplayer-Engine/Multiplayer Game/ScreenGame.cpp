@@ -2,7 +2,7 @@
 #include "Networks.h"
 
 GameObject* background01 = nullptr;
-GameObject* windowManager = nullptr;
+
 
 void ScreenGame::enable()
 {
@@ -28,6 +28,8 @@ void ScreenGame::enable()
 
 	windowManager = Instantiate();
 	App->modBehaviour->addBehaviour(BehaviourType::window_manager, windowManager);
+	if (isServer)
+		windowManager->behaviour->isServer = true;
 
 
 

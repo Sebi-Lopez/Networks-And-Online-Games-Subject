@@ -121,6 +121,10 @@ void GameObject::UpdateInterpolationValues(vec2 pos, float _angle)
 }
 void GameObject::Interpolate()
 {
+	// We dont interpolate our own crosshair
+	if (networkId == App->modNetClient->GetNetworkID())
+		return;
+
 	if (netType != NetEntityType::Crosshair) // The other entities cant really interpolate
 		return; 
 

@@ -184,6 +184,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 					packet >> inputData.buttonBits;
 					packet >> inputData.mousex;
 					packet >> inputData.mousey;
+					packet >> inputData.mouseBits;
 
 					if (inputData.sequenceNumber >= proxy->nextExpectedInputSequenceNumber)
 					{
@@ -192,6 +193,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 						proxy->mouse.x = inputData.mousex;
 						proxy->mouse.y = inputData.mousey;
 						unpackInputControllerButtons(inputData.buttonBits, proxy->gamepad);
+						unpackInputMouseButtons(inputData.mouseBits, proxy->mouse);
 						proxy->gameObject->behaviour->onInput(proxy->gamepad);
 						proxy->gameObject->behaviour->onMouse(proxy->mouse);
 						proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;

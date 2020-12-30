@@ -207,10 +207,17 @@ void PlayerCrosshair::onMouse(const MouseController& mouse)
 	vec2 vp = App->modRender->GetViewportSize();
 	gameObject->position = { (float)mouse.x - vp.x * 0.5f, (float)mouse.y - vp.y * 0.5f };
 	//WLOG("%i", mouse.x);
+	
+	if (mouse.buttons[0] == ButtonState::Press)
+	{
+		LOG("MOUSE LEFT CLICK: %i,%i", mouse.x, mouse.y);
+	}
+
 	if (isServer)
 	{
 		NetworkUpdate(gameObject, false);
 	}
+	
 }
 
 void PlayerCrosshair::onInput(const InputController &input)

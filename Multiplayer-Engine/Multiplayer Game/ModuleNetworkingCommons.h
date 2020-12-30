@@ -21,12 +21,21 @@ struct InputPacketData // TODO: remove unnecessary inputs
 	uint16 buttonBits = 0;
 	int16 mousex = 0;
 	int16 mousey = 0;
-	//uint16 mouseBits = 0;
+	uint16 mouseBits = 0;
 	
 };
 
+// keyboard and game pad inputs ---------
 uint16 packInputControllerButtons(const InputController &input);
 
 void unpackInputControllerButtons(uint16 buttonBits, InputController &input);
 
 InputController inputControllerFromInputPacketData(const InputPacketData &inputPacketData, const InputController &previousGamepad);
+
+// mouse inputs
+
+uint16 packInputMouseButtons(const MouseController& input);
+
+void unpackInputMouseButtons(uint16 buttonBits, MouseController& input);
+
+MouseController inputMouseFromInputPacketData(const InputPacketData& inputPacketData, const MouseController& previousGamepad);

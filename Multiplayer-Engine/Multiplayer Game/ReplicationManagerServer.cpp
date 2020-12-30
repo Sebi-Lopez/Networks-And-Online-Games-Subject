@@ -87,7 +87,7 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 			CowboyWindow* cbw = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour)->GetCowboyWindowWithNetworkId(obj->networkId);
 
 			packet << obj->networkId;
-			packet << actions[i].action;
+			packet << nextCommand.action;
 			NetEntityType type = obj->netType;
 			packet << type;
 
@@ -135,11 +135,10 @@ void ReplicationManagerServer::Update(uint32 networkId)
 
 void ReplicationManagerServer::UpdateCowboyWindow(uint32 networkId)
 {
-	uint16 arrayIndex = networkId & 0xffff;
 	ReplicationCommand com;
 	com.action = ReplicationAction::CowboyOrder;
 	com.networkId = networkId;
-	actions[arrayIndex] = com;
+	commandsList.push_back(com);
 }
 
 void ReplicationManagerServer::Destroy(uint32 networkId)

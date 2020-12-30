@@ -22,9 +22,14 @@ void ScreenGame::enable()
 	background01->sprite = App->modRender->addSprite(background01);
 	background01->sprite->texture = App->modResources->tex_sunset_background;
 	background01->sprite->order = -1;
+	background01->sprite->pivot = { 0,0 };
 	//background01->sprite->clipRect = { 0,0, 256, 256 };
 	//vec2 vp = App->modRender->GetViewportSize();
 	//background01->size = { vp.x, vp.y };
+
+	// set camera position to match world coords 0,0 on top left of the screen
+	// based on viewportsize
+	App->modRender->cameraPosition = App->modRender->GetViewportSize() * 0.5f;
 
 	windowManager = Instantiate();
 	App->modBehaviour->addBehaviour(BehaviourType::window_manager, windowManager);

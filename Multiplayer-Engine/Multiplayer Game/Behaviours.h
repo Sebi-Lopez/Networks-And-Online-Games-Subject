@@ -136,6 +136,7 @@ struct CowboyWindowManager : public Behaviour
 	//
 
 	Targets targetsRects[1]; // store enemie/hostage rects
+	vec4 collisionRect = {}; // store the area to perform coords collision check
 
 	//
 
@@ -158,6 +159,7 @@ struct CowboyWindowManager : public Behaviour
 	void read(const InputMemoryStream& packet) override;
 
 	// ---------------------- 
+	bool CheckMouseClickCollision(vec2 clickPos, int& winIdx) const;
 
 	void GameLoopUpdate();
 	void SpawnLogic();

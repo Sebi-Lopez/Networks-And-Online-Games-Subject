@@ -101,6 +101,8 @@ public:
 	void present();
 
 	vec2 GetViewportSize() const;
+	vec2 WorldToScreenPos() const;
+	vec2 ScreenToWorldPos() const;
 
 
 	// Attributes

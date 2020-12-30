@@ -165,6 +165,25 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 		packet >> targetWindow->position.x; // TODO: REMOVE position, not needed, is fixed on all clients now
 		packet >> targetWindow->position.y;
 
+		break;
+	}
+	case NetEntityType::Shoot:
+	{
+		GameObject* particleShot = Instantiate();
+		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(particleShot, networkId);
+		particleShot->netType = NetEntityType::Shoot;
+		packet >> particleShot->position.x;
+		packet >> particleShot->position.y;
+		//particleShot->angle = gameObject->angle;
+		particleShot->size = { 50, 50 };
+
+		particleShot->sprite = App->modRender->addSprite(particleShot);
+		particleShot->sprite->texture = App->modResources->explosion1;
+		particleShot->sprite->order = 100;
+
+		particleShot->animation = App->modRender->addAnimation(particleShot);
+		particleShot->animation->clip = App->modResources->explosionClip;
+		break;
 	}
 	//case NetEntityType::Laser:
 	//{

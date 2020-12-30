@@ -25,10 +25,18 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 			packet << nextCommand.action;
 			NetEntityType type = obj->netType;
 			packet << type;
+
 			if (type == NetEntityType::Crosshair)
 			{
 				PlayerCrosshair* behaviour = dynamic_cast<PlayerCrosshair*>(obj->behaviour);
 				packet << behaviour->reticle.crosshairType;
+				
+			}
+			else if (type == NetEntityType::CowboyWindow)
+			{
+				//CowboyWindow* cbw = dynamic_cast<CowboyWindow*>(obj);
+				//
+				//ELOG("");
 				
 			}
 			/*else if (type == NetEntityType::Explosion)
@@ -73,6 +81,21 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 			//packet << obj->angle;
 			break;
 		}
+		case ReplicationAction::CowboyOrder:
+		{
+			GameObject* obj = App->modLinkingContext->getNetworkGameObject(nextCommand.networkId);
+			CowboyWindow* cbw = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour)->GetCowboyWindowWithNetworkId(obj->networkId);
+
+			packet << obj->networkId;
+			packet << actions[i].action;
+			NetEntityType type = obj->netType;
+			packet << type;
+
+			packet << cbw->window_id;
+			packet << cbw->state;
+
+			break;
+		}
 		case ReplicationAction::Destroy:
 		{
 			packet << nextCommand.networkId;
@@ -108,6 +131,15 @@ void ReplicationManagerServer::Update(uint32 networkId)
 	com.networkId = networkId;
 
 	commandsList.push_back(com);
+}
+
+void ReplicationManagerServer::UpdateCowboyWindow(uint32 networkId)
+{
+	uint16 arrayIndex = networkId & 0xffff;
+	ReplicationCommand com;
+	com.action = ReplicationAction::CowboyOrder;
+	com.networkId = networkId;
+	actions[arrayIndex] = com;
 }
 
 void ReplicationManagerServer::Destroy(uint32 networkId)

@@ -26,6 +26,24 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 			UpdateObj(packet, networkId);
 			break;
 		}
+		case ReplicationAction::CowboyOrder:
+		{
+			NetEntityType type = NetEntityType::None;
+			uint8 window_idx = 0;
+			WindowState wstate = WindowState::none;
+
+			packet >> type;
+			packet >> window_idx;
+			packet >> wstate;
+
+			CowboyWindowManager* winMan = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
+			if (wstate == WindowState::open)
+				winMan->windows[window_idx].Open();
+			else if (wstate == WindowState::closed)
+				winMan->windows[window_idx].Close();
+
+			break;
+		}
 		case ReplicationAction::Destroy:
 		{
 			// check if its our spaceship
@@ -189,6 +207,79 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 
 		break;
 	}
+	case NetEntityType::CowboyWindow:
+	{
+		// we assume sequentally the windows to fill
+		GameObject* targetWindow = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour)->GetNextCowWindow();
+		  
+		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(targetWindow, networkId);
+		targetWindow->netType = NetEntityType::CowboyWindow;
+
+		packet >> targetWindow->position.x; // TODO: REMOVE position, not needed, is fixed on all clients now
+		packet >> targetWindow->position.y;
+
+		break;
+	}
+	case NetEntityType::Shoot:
+	{
+		GameObject* particleShot = Instantiate();
+		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(particleShot, networkId);
+		particleShot->netType = NetEntityType::Shoot;
+		packet >> particleShot->position.x;
+		packet >> particleShot->position.y;
+		//particleShot->angle = gameObject->angle;
+		particleShot->size = { 50, 50 };
+
+		particleShot->sprite = App->modRender->addSprite(particleShot);
+		particleShot->sprite->texture = App->modResources->explosion1;
+		particleShot->sprite->order = 100;
+
+		particleShot->animation = App->modRender->addAnimation(particleShot);
+		particleShot->animation->clip = App->modResources->explosionClip;
+		break;
+	}
+	//case NetEntityType::Laser:
+	//{
+	//	GameObject* laser = App->modGameObject->Instantiate();
+	//	App->modLinkingContext->registerNetworkGameObjectWithNetworkId(laser, networkId);
+	//	laser->netType = NetEntityType::Laser;
+
+	//	packet >> laser->position.x;
+	//	packet >> laser->position.y;
+	//	packet >> laser->angle;
+	//	laser->size = { 20, 60 };
+
+	//	laser->sprite = App->modRender->addSprite(laser);
+	//	laser->sprite->order = 3;
+	//	laser->sprite->texture = App->modResources->laser;
+
+	//	Laser* laserBehaviour = App->modBehaviour->addLaser(laser);
+	//	laserBehaviour->isServer = false;
+
+	//	//laser->tag = gameObject->tag;
+	//	break;
+	//}
+	/*case NetEntityType::Explosion:
+	{
+		GameObject* explosion = Instantiate();
+		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(explosion, networkId);
+		explosion->netType = NetEntityType::Explosion;
+	
+		packet >> explosion->size.x;
+		packet >> explosion->size.y;
+
+		packet >> explosion->position.x;
+		packet >> explosion->position.y;
+		packet >> explosion->angle;
+
+		explosion->sprite = App->modRender->addSprite(explosion);
+		explosion->sprite->texture = App->modResources->explosion1;
+		explosion->sprite->order = 100;
+
+		explosion->animation = App->modRender->addAnimation(explosion);
+		explosion->animation->clip = App->modResources->explosionClip;
+		break;
+	}*/
 	default:
 	{
 		break;

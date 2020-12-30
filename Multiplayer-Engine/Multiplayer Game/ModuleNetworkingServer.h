@@ -94,6 +94,9 @@ private:
 	void updateNetworkObject(GameObject *gameObject, bool self_inform = true);
 	friend void (NetworkUpdate)(GameObject *, bool self_inform);
 
+	void NotifyCowboyWindow(GameObject*);
+	friend void (NetWorkUpdateTarget)(GameObject* gameObject);
+
 	void destroyNetworkObject(GameObject *gameObject);
 	void destroyNetworkObject(GameObject *gameObject, float delaySeconds);
 	friend void (NetworkDestroy)(GameObject *);
@@ -145,3 +148,5 @@ void NetworkUpdate(GameObject *gameObject, bool self_inform = true);
 // machines.
 void NetworkDestroy(GameObject *gameObject);
 void NetworkDestroy(GameObject *gameObject, float delaySeconds);
+
+void NetWorkUpdateTarget(GameObject* gameObject); // networkcowboywindowupdate

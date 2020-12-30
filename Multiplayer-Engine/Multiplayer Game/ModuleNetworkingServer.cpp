@@ -189,6 +189,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 					packet >> inputData.buttonBits;
 					packet >> inputData.mousex;
 					packet >> inputData.mousey;
+					packet >> inputData.mouseBits;
 
 					if (inputData.sequenceNumber >= proxy->nextExpectedInputSequenceNumber)
 					{
@@ -197,6 +198,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 						proxy->mouse.x = inputData.mousex;
 						proxy->mouse.y = inputData.mousey;
 						unpackInputControllerButtons(inputData.buttonBits, proxy->gamepad);
+						unpackInputMouseButtons(inputData.mouseBits, proxy->mouse);
 						proxy->gameObject->behaviour->onInput(proxy->gamepad);
 						proxy->gameObject->behaviour->onMouse(proxy->mouse);
 						proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;
@@ -481,6 +483,17 @@ void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject, bool s
 	}
 }
 
+void ModuleNetworkingServer::NotifyCowboyWindow(GameObject* gameObject)
+{
+	for (int i = 0; i < MAX_CLIENTS; ++i)
+	{
+		if (clientProxies[i].connected)
+		{
+			clientProxies[i].replication.UpdateCowboyWindow(gameObject->networkId);
+		}
+	}
+}
+
 void ModuleNetworkingServer::destroyNetworkObject(GameObject * gameObject)
 {
 	// Notify all client proxies' replication manager to destroy the object remotely
@@ -561,4 +574,12 @@ void NetworkDestroy(GameObject * gameObject, float delaySeconds)
 	ASSERT(gameObject->networkId != 0);
 
 	App->modNetServer->destroyNetworkObject(gameObject, delaySeconds);
+}
+
+void NetWorkUpdateTarget(GameObject* gameObject)
+{
+	ASSERT(App->modNetServer->isConnected());
+	ASSERT(gameObject->networkId != 0);
+
+	App->modNetServer->NotifyCowboyWindow(gameObject);
 }

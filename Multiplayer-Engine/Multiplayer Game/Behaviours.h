@@ -130,12 +130,13 @@ struct CowboyWindowManager : public Behaviour
 	uint32 countdown_duration = 5000;
 	uint32 game_duration = 10000;
 
-
 	CowboyWindow windows[MAX_SPAWN_WINDOWS]; // store windows gameobjects
+	uint8 wIdx = 0;
 
 	//
 
 	Targets targetsRects[1]; // store enemie/hostage rects
+	vec4 collisionRect = {}; // store the area to perform coords collision check
 
 	//
 
@@ -158,6 +159,7 @@ struct CowboyWindowManager : public Behaviour
 	void read(const InputMemoryStream& packet) override;
 
 	// ---------------------- 
+	bool CheckMouseClickCollision(vec2 clickPos, int& winIdx) const;
 
 	void GameLoopUpdate();
 	void SpawnLogic();
@@ -165,6 +167,11 @@ struct CowboyWindowManager : public Behaviour
 
 	void CloseAllWindows();
 	void OpenWindow(uint8 n);
+
+	// client side
+	GameObject* GetNextCowWindow();
+
+	CowboyWindow* GetCowboyWindowWithNetworkId(uint32 networkId);
 
 };
 

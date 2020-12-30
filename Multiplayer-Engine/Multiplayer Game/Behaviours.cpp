@@ -5,6 +5,8 @@
 
 void CowboyWindowManager::start()
 {
+	collisionRect = { 40, 38, 75, 90 }; // x and y are the offsets respect 0,0 from "opened window" size
+
 	// create necessary rects for window and different enemies/hostages
 	vec4 windowsPositions[MAX_SPAWN_WINDOWS];
 	windowsPositions[0] = { 354, 0 };
@@ -15,28 +17,32 @@ void CowboyWindowManager::start()
 
 	for (int i = 0; i < MAX_SPAWN_WINDOWS; ++i)
 	{
-		windows[i].window = Instantiate();
-		windows[i].window->position = { windowsPositions[i].x - 1280*0.5f, windowsPositions[i].y - 720*0.5f };
+		if(isServer)
+			windows[i].window = NetworkInstantiate();
+		else
+			windows[i].window = Instantiate();
 
+		//windows[i].window->position = { windowsPositions[i].x - 1280*0.5f, windowsPositions[i].y - 720*0.5f };
+		windows[i].window->position = { windowsPositions[i].x, windowsPositions[i].y };
+		
 		windows[i].window->sprite = App->modRender->addSprite(windows[i].window);
 		windows[i].window->sprite->texture = App->modResources->tex_cowboy_window;
 		windows[i].window->sprite->clipRect = { 358, 358, 154, 154};
 		windows[i].window->sprite->pivot = { 0,0 };
 		windows[i].window->size = { 154,154 };
-		//windows[i].window->sprite->order = 3;
-
+		windows[i].window->sprite->order = 3;
+		
 		windows[i].winMan = this;
 		windows[i].window_id = (uint8)i;
+		
+		windows[i].window->netType = NetEntityType::CowboyWindow;
 	}
 
+	// TODO: fill with all rects from enemies/hostages
 	// targets
 	targetsRects[0].spawnRect = { 0,0, 113, 129 };
 
 	CloseAllWindows();
-
-	//OpenWindow(3);
-	//OpenWindow(2);
-
 }
 
 void CowboyWindowManager::CloseAllWindows()
@@ -65,6 +71,50 @@ void CowboyWindowManager::update()
 
 	GameLoopUpdate();
 
+}
+
+bool CowboyWindowManager::CheckMouseClickCollision(vec2 clickPos, int& winIdx) const
+{
+	// iterate all windows and check
+	for (int i = 0; i < MAX_SPAWN_WINDOWS; ++i)
+	{
+		// get rectified area with collision rect
+		vec2 windowPos = windows[i].window->position;
+		windowPos += { collisionRect.x, collisionRect.y};
+		vec2 windowSize = {collisionRect.z, collisionRect.w};
+
+		// now check the position
+		if (clickPos.x > windowPos.x && clickPos.x < windowPos.x + windowSize.x &&
+			clickPos.y > windowPos.y && clickPos.y < windowPos.y + windowSize.y) 
+		{
+			LOG("CLICKED ON WINDOW %i", i);
+			winIdx = i;
+			return true;
+		}
+		
+	}
+
+	return false;
+}
+
+CowboyWindow* CowboyWindowManager::GetCowboyWindowWithNetworkId(uint32 networkId)
+{
+	for (int i = 0; i < MAX_SPAWN_WINDOWS; ++i)
+	{
+		if (windows[i].window->networkId == networkId)
+		{
+			return &windows[i];
+		}
+	}
+
+	return nullptr;
+}
+
+GameObject* CowboyWindowManager::GetNextCowWindow()
+{
+	if (wIdx > MAX_SPAWN_WINDOWS)
+		wIdx = 0;
+	return windows[wIdx++].window;
 }
 
 void CowboyWindowManager::SpawnLogic()
@@ -181,13 +231,54 @@ void PlayerCrosshair::start()
 
 void PlayerCrosshair::onMouse(const MouseController& mouse)
 {
-	vec2 vp = App->modRender->GetViewportSize();
-	gameObject->position = { (float)mouse.x - vp.x * 0.5f, (float)mouse.y - vp.y * 0.5f };
-	//WLOG("%i", mouse.x);
+	gameObject->position = { (float)mouse.x, (float)mouse.y};
+	
+	if (mouse.buttons[0] == ButtonState::Press)
+	{
+		//LOG("MOUSE LEFT CLICK: %i,%i", mouse.x, mouse.y);
+
+		if (isServer)
+		{
+			GameObject* particleShot = NetworkInstantiate();
+			particleShot->netType = NetEntityType::Shoot;
+			particleShot->position = gameObject->position;
+			//particleShot->angle = gameObject->angle;
+			particleShot->size = { 50, 50 };
+
+			particleShot->sprite = App->modRender->addSprite(particleShot);
+			particleShot->sprite->texture = App->modResources->explosion1;
+			particleShot->sprite->order = 100;
+
+			particleShot->animation = App->modRender->addAnimation(particleShot);
+			particleShot->animation->clip = App->modResources->explosionClip;
+
+			NetworkDestroy(particleShot, 2.0f);
+
+			// TODO: PLAY SOUND ON ALL CLIENTS
+
+		}
+
+		// TODO: wip
+		int winIdx = -1;
+		CowboyWindowManager* winManager = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
+		if (winManager->CheckMouseClickCollision({ (float)mouse.x, (float)mouse.y }, winIdx))
+		{
+			if (winManager->windows[winIdx].state == WindowState::open)
+			{
+				LOG("Window %i, OPEN");
+			}
+			else
+			{
+				LOG("Window %i, CLOSED");
+			}
+		}
+	}
+
 	if (isServer)
 	{
 		NetworkUpdate(gameObject, false);
 	}
+	
 }
 
 void PlayerCrosshair::onInput(const InputController &input)
@@ -254,7 +345,11 @@ void PlayerCrosshair::update()
 
 	if (gameObject->networkId == id) {
 		vec2 vp = App->modRender->GetViewportSize();
-		gameObject->position = { (float)Mouse.x - vp.x * 0.5f, (float)Mouse.y - vp.y * 0.5f };
+		gameObject->position = { (float)Mouse.x, (float)Mouse.y};
+
+		// NOTE: first try to instantiate all clients from server to check how it feels if not:
+		// TODO: instantiate particle for this client on local
+
 	}
 }
 
@@ -326,10 +421,7 @@ void PlayerCrosshair::read(const InputMemoryStream & packet)
 void CowboyWindow::Update()
 {
 	if (Time.time > spawned_at + lifetime)
-	{
 		Close();
-		
-	}
 }
 
 void CowboyWindow::Open()
@@ -374,6 +466,9 @@ void CowboyWindow::Open()
 
 	winMan->current_opened_windows++;
 	winMan->last_window_opened_time = Time.time;
+
+	if (winMan->isServer)
+		NetWorkUpdateTarget(window);
 }
 
 void CowboyWindow::Close()
@@ -395,6 +490,8 @@ void CowboyWindow::Close()
 	winMan->last_window_closed_id = window_id;
 	winMan->last_window_closed_time = Time.time;
 
+	if(winMan->isServer)
+		NetWorkUpdateTarget(window);
 }
 
 vec4 CowboyWindow::GetRandomEnemy(EnemyType& type)

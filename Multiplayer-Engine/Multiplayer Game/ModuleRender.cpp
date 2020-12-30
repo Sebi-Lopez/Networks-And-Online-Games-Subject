@@ -791,3 +791,13 @@ vec2 ModuleRender::GetViewportSize() const
 	vec2 ret = { vp.Width, vp.Height };
 	return ret;
 }
+
+vec2 ModuleRender::WorldToScreenPos() const // TODO: if we make a scrollable background/stage
+{
+	return vec2();
+}
+
+vec2 ModuleRender::ScreenToWorldPos() const 
+{
+	return vec2();
+}

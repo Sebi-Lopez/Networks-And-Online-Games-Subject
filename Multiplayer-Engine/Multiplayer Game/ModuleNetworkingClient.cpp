@@ -231,7 +231,7 @@ void ModuleNetworkingClient::onUpdate()
 			inputPacketData.buttonBits = packInputControllerButtons(Input);
 			inputPacketData.mousex = Mouse.x;
 			inputPacketData.mousey = Mouse.y;
-			//inputPacketData.mouseBits = packInputControllerButtons(Mouse);
+			inputPacketData.mouseBits = packInputMouseButtons(Mouse);
 
 		}
 
@@ -260,6 +260,7 @@ void ModuleNetworkingClient::onUpdate()
 				packet << inputPacketData.buttonBits;
 				packet << inputPacketData.mousex;
 				packet << inputPacketData.mousey;
+				packet << inputPacketData.mouseBits;
 				//LOG("Pushing sequence number: %i", inputPacketData.sequenceNumber);
 			}
 			InputPacketData& last = inputData[(inputDataBack - 1) % ArrayCount(inputData)];

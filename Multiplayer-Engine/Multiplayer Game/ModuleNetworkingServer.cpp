@@ -428,6 +428,17 @@ void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject, bool s
 	}
 }
 
+void ModuleNetworkingServer::NotifyCowboyWindow(GameObject* gameObject)
+{
+	for (int i = 0; i < MAX_CLIENTS; ++i)
+	{
+		if (clientProxies[i].connected)
+		{
+			clientProxies[i].replication.UpdateCowboyWindow(gameObject->networkId);
+		}
+	}
+}
+
 void ModuleNetworkingServer::destroyNetworkObject(GameObject * gameObject)
 {
 	// Notify all client proxies' replication manager to destroy the object remotely
@@ -504,4 +515,12 @@ void NetworkDestroy(GameObject * gameObject, float delaySeconds)
 	ASSERT(gameObject->networkId != 0);
 
 	App->modNetServer->destroyNetworkObject(gameObject, delaySeconds);
+}
+
+void NetWorkUpdateTarget(GameObject* gameObject)
+{
+	ASSERT(App->modNetServer->isConnected());
+	ASSERT(gameObject->networkId != 0);
+
+	App->modNetServer->NotifyCowboyWindow(gameObject);
 }

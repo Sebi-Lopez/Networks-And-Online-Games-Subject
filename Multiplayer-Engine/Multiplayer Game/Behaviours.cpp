@@ -15,28 +15,31 @@ void CowboyWindowManager::start()
 
 	for (int i = 0; i < MAX_SPAWN_WINDOWS; ++i)
 	{
-		windows[i].window = Instantiate();
-		windows[i].window->position = { windowsPositions[i].x - 1280*0.5f, windowsPositions[i].y - 720*0.5f };
+		if(isServer)
+			windows[i].window = NetworkInstantiate();
+		else
+			windows[i].window = Instantiate();
 
+		windows[i].window->position = { windowsPositions[i].x - 1280*0.5f, windowsPositions[i].y - 720*0.5f };
+		
 		windows[i].window->sprite = App->modRender->addSprite(windows[i].window);
 		windows[i].window->sprite->texture = App->modResources->tex_cowboy_window;
 		windows[i].window->sprite->clipRect = { 358, 358, 154, 154};
 		windows[i].window->sprite->pivot = { 0,0 };
 		windows[i].window->size = { 154,154 };
-		//windows[i].window->sprite->order = 3;
-
+		windows[i].window->sprite->order = 3;
+		
 		windows[i].winMan = this;
 		windows[i].window_id = (uint8)i;
+		
+		windows[i].window->netType = NetEntityType::CowboyWindow;
 	}
 
+	// TODO: fill with all rects from enemies/hostages
 	// targets
 	targetsRects[0].spawnRect = { 0,0, 113, 129 };
 
 	CloseAllWindows();
-
-	//OpenWindow(3);
-	//OpenWindow(2);
-
 }
 
 void CowboyWindowManager::CloseAllWindows()
@@ -65,6 +68,26 @@ void CowboyWindowManager::update()
 
 	GameLoopUpdate();
 
+}
+
+CowboyWindow* CowboyWindowManager::GetCowboyWindowWithNetworkId(uint32 networkId)
+{
+	for (int i = 0; i < MAX_SPAWN_WINDOWS; ++i)
+	{
+		if (windows[i].window->networkId == networkId)
+		{
+			return &windows[i];
+		}
+	}
+
+	return nullptr;
+}
+
+GameObject* CowboyWindowManager::GetNextCowWindow()
+{
+	if (wIdx > MAX_SPAWN_WINDOWS)
+		wIdx = 0;
+	return windows[wIdx++].window;
 }
 
 void CowboyWindowManager::SpawnLogic()
@@ -326,10 +349,7 @@ void PlayerCrosshair::read(const InputMemoryStream & packet)
 void CowboyWindow::Update()
 {
 	if (Time.time > spawned_at + lifetime)
-	{
 		Close();
-		
-	}
 }
 
 void CowboyWindow::Open()
@@ -374,6 +394,9 @@ void CowboyWindow::Open()
 
 	winMan->current_opened_windows++;
 	winMan->last_window_opened_time = Time.time;
+
+	if (winMan->isServer)
+		NetWorkUpdateTarget(window);
 }
 
 void CowboyWindow::Close()
@@ -395,6 +418,8 @@ void CowboyWindow::Close()
 	winMan->last_window_closed_id = window_id;
 	winMan->last_window_closed_time = Time.time;
 
+	if(winMan->isServer)
+		NetWorkUpdateTarget(window);
 }
 
 vec4 CowboyWindow::GetRandomEnemy(EnemyType& type)

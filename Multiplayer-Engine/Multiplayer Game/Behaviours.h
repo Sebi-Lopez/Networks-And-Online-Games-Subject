@@ -130,8 +130,8 @@ struct CowboyWindowManager : public Behaviour
 	uint32 countdown_duration = 5000;
 	uint32 game_duration = 10000;
 
-
 	CowboyWindow windows[MAX_SPAWN_WINDOWS]; // store windows gameobjects
+	uint8 wIdx = 0;
 
 	//
 
@@ -165,6 +165,11 @@ struct CowboyWindowManager : public Behaviour
 
 	void CloseAllWindows();
 	void OpenWindow(uint8 n);
+
+	// client side
+	GameObject* GetNextCowWindow();
+
+	CowboyWindow* GetCowboyWindowWithNetworkId(uint32 networkId);
 
 };
 

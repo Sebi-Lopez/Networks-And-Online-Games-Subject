@@ -26,6 +26,24 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 			UpdateObj(packet, networkId);
 			break;
 		}
+		case ReplicationAction::CowboyOrder:
+		{
+			NetEntityType type = NetEntityType::None;
+			uint8 window_idx = 0;
+			WindowState wstate = WindowState::none;
+
+			packet >> type;
+			packet >> window_idx;
+			packet >> wstate;
+
+			CowboyWindowManager* winMan = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
+			if (wstate == WindowState::open)
+				winMan->windows[window_idx].Open();
+			else if (wstate == WindowState::closed)
+				winMan->windows[window_idx].Close();
+
+			break;
+		}
 		case ReplicationAction::Destroy:
 		{
 			GameObject* obj = App->modLinkingContext->getNetworkGameObject(networkId);
@@ -135,6 +153,18 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 
 
 		break;
+	}
+	case NetEntityType::CowboyWindow:
+	{
+		// we assume sequentally the windows to fill
+		GameObject* targetWindow = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour)->GetNextCowWindow();
+		  
+		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(targetWindow, networkId);
+		targetWindow->netType = NetEntityType::CowboyWindow;
+
+		packet >> targetWindow->position.x; // TODO: REMOVE position, not needed, is fixed on all clients now
+		packet >> targetWindow->position.y;
+
 	}
 	//case NetEntityType::Laser:
 	//{

@@ -76,6 +76,17 @@ void ScreenGame::update()
 
 void ScreenGame::gui()
 {
+
+	std::vector<PlayerCrosshair*> players = App->modBehaviour->GetPlayersCrosshairs();
+	ImGui::Begin("Scoreboard window");
+	
+	for (int i = 0; i < players.size(); ++i)
+	{
+		ImGui::Text("%i", (PlayerCrosshair*)players[i]->score);
+	}
+
+	ImGui::End();
+	
 }
 
 void ScreenGame::disable()

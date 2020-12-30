@@ -42,6 +42,14 @@ void CowboyWindowManager::start()
 	// targets
 	targetsRects[0].spawnRect = { 0,0, 113, 129 };
 
+	// enemy score points
+	enemyScores[(int)EnemyType::bad1] = 30;
+	enemyScores[(int)EnemyType::bad2] = 60;
+	enemyScores[(int)EnemyType::bad3] = 120;
+	enemyScores[(int)EnemyType::hostage1] = -50;
+	enemyScores[(int)EnemyType::hostage2] = -100;
+
+
 	CloseAllWindows();
 }
 
@@ -258,18 +266,27 @@ void PlayerCrosshair::onMouse(const MouseController& mouse)
 
 		}
 
-		// TODO: wip
-		int winIdx = -1;
-		CowboyWindowManager* winManager = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
-		if (winManager->CheckMouseClickCollision({ (float)mouse.x, (float)mouse.y }, winIdx))
+		if (isServer) // check collision from this player
 		{
-			if (winManager->windows[winIdx].state == WindowState::open)
+			// TODO: wip
+			int winIdx = -1;
+			CowboyWindowManager* winManager = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
+			if (winManager->CheckMouseClickCollision({ (float)mouse.x, (float)mouse.y }, winIdx))
 			{
-				LOG("Window %i, OPEN");
-			}
-			else
-			{
-				LOG("Window %i, CLOSED");
+				if (winManager->windows[winIdx].state == WindowState::open)
+				{
+					//LOG("Window %i, OPEN");
+					dynamic_cast<PlayerCrosshair*>(gameObject->behaviour)->score += winManager->enemyScores[(int)winManager->windows[winIdx].currentEnemyType];
+
+					winManager->windows[winIdx].hitByNetworkId = gameObject->networkId;
+					winManager->windows[winIdx].Close();
+					//NetWorkUpdateTarget(winManager->windows[winIdx].window);
+				}
+				else
+				{
+					// LOG("Window %i, CLOSED");
+					// DO nothing
+				}
 			}
 		}
 	}
@@ -426,6 +443,7 @@ void CowboyWindow::Update()
 
 void CowboyWindow::Open()
 {
+	hitByNetworkId = 0;
 	state = WindowState::open;
 	window->sprite->color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -474,8 +492,6 @@ void CowboyWindow::Open()
 void CowboyWindow::Close()
 {
 	window->sprite->color = { 1.0f, 1.0f, 1.0f, 0.0f };
-
-	currentEnemyType = EnemyType::none;
 
 	if (target != nullptr)
 	{

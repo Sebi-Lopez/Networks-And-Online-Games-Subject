@@ -51,6 +51,7 @@ struct PlayerCrosshair : public Behaviour
 {
 	
 	CrosshairRects reticle;
+	int score = 0;
 
 	BehaviourType type() const override { return BehaviourType::crosshair; }
 
@@ -80,7 +81,7 @@ enum class WindowState
 	none, closed, open, max
 };
 
-enum class EnemyType : uint8
+enum class EnemyType
 {
 	none, bad1, bad2, bad3, hostage1, hostage2, max
 };
@@ -93,6 +94,7 @@ struct CowboyWindow
 	GameObject* target = nullptr; // enemy/hostage
 	WindowState state;
 	EnemyType currentEnemyType = EnemyType::none;
+	uint32 hitByNetworkId = 0; // store if this comes from a succesfully shot or by time despawn
 
 	float max_lifetime = 2.0f; // max lifetime to despawn this target
 	float spawned_at = 0.0f; // store spawn time
@@ -116,6 +118,7 @@ struct CowboyWindowManager : public Behaviour
 {
 
 	GameState gameLoopState = GameState::none;
+	int enemyScores[(int)EnemyType::max];
 
 	uint8 max_opened_windows = 3;
 	uint8 current_opened_windows = 0;

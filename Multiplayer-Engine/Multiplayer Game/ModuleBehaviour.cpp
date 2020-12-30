@@ -186,3 +186,18 @@ CrosshairRects ModuleBehaviour::GetCrosshairRects(uint8 type) const
 
 	return crosshairTypeRects[type];
 }
+
+std::vector<PlayerCrosshair*> ModuleBehaviour::GetPlayersCrosshairs()
+{
+	std::vector<PlayerCrosshair*> disp;
+
+	for (PlayerCrosshair& behaviour : players_crosshairs)
+	{
+		if (behaviour.gameObject == nullptr)
+			continue;
+
+		disp.push_back(&behaviour);
+	}
+
+	return disp;
+}

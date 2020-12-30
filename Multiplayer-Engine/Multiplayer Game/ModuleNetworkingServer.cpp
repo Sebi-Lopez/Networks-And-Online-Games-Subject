@@ -145,13 +145,17 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				{
 					GameObject *gameObject = networkGameObjects[i];
 					
-				// TODO(you): World state replication lab session ------------------------------
+					if (gameObject == proxy->gameObject)
+						continue;
+
+					// TODO(you): World state replication lab session ------------------------------
 					proxy->replication.Create(gameObject->networkId);
 				}
 				OutputMemoryStream repliPacket;
 				repliPacket << PROTOCOL_ID;
 				repliPacket << ServerMessage::Replication;
-				proxy->replication.Write(repliPacket);
+				repliPacket << proxy->nextExpectedInputSequenceNumber;
+				proxy->replication.Write(repliPacket, &proxy->deliveryManager, proxy->replication.commandsList);
 				sendPacket(repliPacket, fromAddress);
 				// -----------------------------------------------------------------------------
 
@@ -169,6 +173,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 		}
 		else if (message == ClientMessage::Input)
 		{
+			proxy->deliveryManager.ProcessAckdSequenceNumbers(packet);
 			// Process the input packet and update the corresponding game object
 			if (proxy != nullptr && IsValid(proxy->gameObject))
 			{
@@ -229,6 +234,7 @@ void ModuleNetworkingServer::onUpdate()
 		}
 
 		bool sendPing = Time.time - timeLastGeneralPingSent > PING_INTERVAL_SECONDS;
+
 		for (ClientProxy &clientProxy : clientProxies)
 		{
 			if (clientProxy.connected)
@@ -260,14 +266,60 @@ void ModuleNetworkingServer::onUpdate()
 				}
 
 				// TODO(you): World state replication lab session
-				// TODO: still wip, not send every frame
-				OutputMemoryStream commandsPacket;
-				commandsPacket << PROTOCOL_ID;
-				commandsPacket << ClientMessage::Replication;
-				clientProxy.replication.Write(commandsPacket);
-				sendPacket(commandsPacket, clientProxy.address);
+				clientProxy.replication.lastReplicationSent += Time.deltaTime;
+				if (clientProxy.replication.lastReplicationSent >= REPLICATION_INTERVAL)
+				{
+					clientProxy.replication.lastReplicationSent = 0.0f;
+
+					OutputMemoryStream commandsPacket;
+					commandsPacket << PROTOCOL_ID;
+					commandsPacket << ClientMessage::Replication;
+
+					// Sneakily Input notification
+					commandsPacket << clientProxy.nextExpectedInputSequenceNumber; 
+					//LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
+
+					// Actual replication
+					clientProxy.replication.Write(commandsPacket, &clientProxy.deliveryManager, clientProxy.replication.commandsList);
+
+					sendPacket(commandsPacket, clientProxy.address);
+				}
 
 				// TODO(you): Reliability on top of UDP lab session
+				if (clientProxy.deliveryManager.ProcessTimedOutPackets(&clientProxy.replication))
+				{
+
+					OutputMemoryStream commandsPacket;
+					commandsPacket << PROTOCOL_ID;
+					commandsPacket << ClientMessage::Replication;
+
+					// Sneakily Input notification
+					commandsPacket << clientProxy.nextExpectedInputSequenceNumber;
+					//LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
+
+					LOG("Resending Must-Send Commands - %i", clientProxy.replication.mustReSendList.size());
+					
+					for (std::list<ReplicationCommand>::iterator iter = clientProxy.replication.mustReSendList.begin(); iter != clientProxy.replication.mustReSendList.end(); ++iter)
+					{
+						switch ((*iter).action)
+						{
+						case ReplicationAction::Create:
+							LOG("Create - %i", (*iter).networkId);
+							break;
+						case ReplicationAction::Destroy:
+							LOG("Destroy - %i", (*iter).networkId);
+							break;
+						case ReplicationAction::Update:
+							LOG("Update - %i", (*iter).networkId);
+							break;
+						}
+					}
+					
+					// Actual replication
+					clientProxy.replication.Write(commandsPacket, &clientProxy.deliveryManager, clientProxy.replication.mustReSendList);
+
+					sendPacket(commandsPacket, clientProxy.address);
+				}
 			}
 		}
 		if (sendPing)
@@ -291,15 +343,16 @@ void ModuleNetworkingServer::onDisconnect()
 {
 	uint16 netGameObjectsCount;
 	GameObject *netGameObjects[MAX_NETWORK_OBJECTS];
+
+	for (ClientProxy& clientProxy : clientProxies)
+	{
+		destroyClientProxy(&clientProxy);
+	}
+
 	App->modLinkingContext->getNetworkGameObjects(netGameObjects, &netGameObjectsCount);
 	for (uint32 i = 0; i < netGameObjectsCount; ++i)
 	{
 		NetworkDestroy(netGameObjects[i]);
-	}
-
-	for (ClientProxy &clientProxy : clientProxies)
-	{
-		destroyClientProxy(&clientProxy);
 	}
 	
 	nextClientId = 0;
@@ -500,6 +553,10 @@ void NetworkDestroy(GameObject * gameObject)
 
 void NetworkDestroy(GameObject * gameObject, float delaySeconds)
 {
+	// If the server is down, dont do anything (you laser/explosion), you will be/are destroyed anyways
+	if (!App->modNetServer->isConnected())
+		return;
+
 	ASSERT(App->modNetServer->isConnected());
 	ASSERT(gameObject->networkId != 0);
 

@@ -28,6 +28,15 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 		}
 		case ReplicationAction::Destroy:
 		{
+			// check if its our spaceship
+			if (networkId == App->modNetClient->GetNetworkID())
+			{
+				/*ELOG("Your ship should be destroyed.");
+				WLOG("KICKED: you are killed");
+				NetworkDisconnect();*/
+				//App->modNetClient->disconnect();
+			}
+
 			GameObject* obj = App->modLinkingContext->getNetworkGameObject(networkId);
 			if (obj == nullptr)
 			{
@@ -62,6 +71,31 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 	NetEntityType type;
 	packet >> type;
 
+	// We need to get the data out, so the reading of the next 
+	// replication isnt corrupted in case there is no object
+
+	vec2 position;
+	float angle;
+	uint8 hitPoints;
+
+	switch (type)
+	{
+	case NetEntityType::None:
+		break;
+	case NetEntityType::Crosshair:
+	{
+
+		packet >> position.x;
+		packet >> position.y;
+		break;
+	}
+	default:
+		break;
+	}
+
+	// Once we got the data out, we figure out if the object is already created 
+	// If there's no object, we are still waiting for the creation packet that might be dropped 
+
 	GameObject* obj2U = App->modLinkingContext->getNetworkGameObject(networkId);
 	if (obj2U == nullptr)
 	{
@@ -79,18 +113,11 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 		//Crosshair* ch = dynamic_cast<Crosshair*>(obj2U->behaviour);
 		//packet >> ss->hitPoints;
 		
-		packet >> obj2U->position.x;
-		packet >> obj2U->position.y;
+		obj2U->position = position;
 		//packet >> obj2U->angle;
 		break;
 	}
-	/*case NetEntityType::Laser:
-	{
-		packet >> obj2U->position.x;
-		packet >> obj2U->position.y;
-		packet >> obj2U->angle;
-		break;
-	}*/
+
 	default:
 		break;
 	}
@@ -101,6 +128,19 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 {
 	NetEntityType type;
 	packet >> type;
+
+	// Check if the array of network game objects is full there 
+	// In any case, if they sent you to create an obj, that means that the server 
+	// destroyed the object that was there, and the packet was lost, so it will be destroyed later anyways 
+
+	GameObject* obj = App->modLinkingContext->getNetworkGameObject(networkId, false);
+	if (obj != nullptr)
+	{
+		LOG("There is an object in the position you are trying to create a new one. Deleting.");
+		App->modLinkingContext->unregisterNetworkGameObject(obj);
+		Destroy(obj);
+	}
+
 
 	switch (type)
 	{
@@ -136,48 +176,6 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 
 		break;
 	}
-	//case NetEntityType::Laser:
-	//{
-	//	GameObject* laser = App->modGameObject->Instantiate();
-	//	App->modLinkingContext->registerNetworkGameObjectWithNetworkId(laser, networkId);
-	//	laser->netType = NetEntityType::Laser;
-
-	//	packet >> laser->position.x;
-	//	packet >> laser->position.y;
-	//	packet >> laser->angle;
-	//	laser->size = { 20, 60 };
-
-	//	laser->sprite = App->modRender->addSprite(laser);
-	//	laser->sprite->order = 3;
-	//	laser->sprite->texture = App->modResources->laser;
-
-	//	Laser* laserBehaviour = App->modBehaviour->addLaser(laser);
-	//	laserBehaviour->isServer = false;
-
-	//	//laser->tag = gameObject->tag;
-	//	break;
-	//}
-	/*case NetEntityType::Explosion:
-	{
-		GameObject* explosion = Instantiate();
-		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(explosion, networkId);
-		explosion->netType = NetEntityType::Explosion;
-	
-		packet >> explosion->size.x;
-		packet >> explosion->size.y;
-
-		packet >> explosion->position.x;
-		packet >> explosion->position.y;
-		packet >> explosion->angle;
-
-		explosion->sprite = App->modRender->addSprite(explosion);
-		explosion->sprite->texture = App->modResources->explosion1;
-		explosion->sprite->order = 100;
-
-		explosion->animation = App->modRender->addAnimation(explosion);
-		explosion->animation->clip = App->modResources->explosionClip;
-		break;
-	}*/
 	default:
 	{
 		break;

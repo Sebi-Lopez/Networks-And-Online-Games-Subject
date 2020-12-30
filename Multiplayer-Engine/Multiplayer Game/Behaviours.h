@@ -135,7 +135,7 @@ struct CowboyWindowManager : public Behaviour
 
 	//
 
-	Targets targetsRects[1]; // store enemie/hostage rects
+	Targets targetsRects[5]; // store enemie/hostage rects
 	vec4 collisionRect = {}; // store the area to perform coords collision check
 
 	//

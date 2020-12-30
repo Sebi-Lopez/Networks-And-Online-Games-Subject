@@ -39,8 +39,16 @@ void CowboyWindowManager::start()
 	}
 
 	// TODO: fill with all rects from enemies/hostages
+
 	// targets
 	targetsRects[0].spawnRect = { 0,0, 113, 129 };
+	targetsRects[1].spawnRect = { 0, 129, 113, 129 };
+	targetsRects[2].spawnRect = { 0, 258, 113, 129 };
+
+	// Hostages
+	targetsRects[3].spawnRect = { 261, 0, 113, 129 };
+	targetsRects[4].spawnRect = { 256, 129, 113, 129 };
+
 
 	CloseAllWindows();
 }
@@ -496,9 +504,18 @@ void CowboyWindow::Close()
 
 vec4 CowboyWindow::GetRandomEnemy(EnemyType& type)
 {
-	// TODO: finish
-	type = EnemyType(1);
-	vec4 ret = winMan->targetsRects[0].spawnRect;
+	type = (EnemyType)(int)(((int)EnemyType::max - 1) * Random.next());
+
+	if (type == EnemyType::none) // Case random 0. - 0.9
+		type = EnemyType::bad1;
+
+	int index = (int)type;
+	if (index < 0 || index >= (int)EnemyType::max) {
+		ELOG("Random returned a non existant enemy");
+		return vec4{ 0,0,0,0 };
+	}
+
+	vec4 ret = winMan->targetsRects[index].spawnRect;
 	return ret;
 }
 

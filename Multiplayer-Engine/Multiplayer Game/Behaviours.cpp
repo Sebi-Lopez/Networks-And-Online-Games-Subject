@@ -51,9 +51,12 @@ void CowboyWindowManager::OpenWindow(uint8 n)
 	windows[n].Open();
 }
 
-void CowboyWindowManager::onMouse(const MouseController& mouse)
+void CowboyWindowManager::onMouse(const MouseController& mouse, const double& time_stamp)
 {
-
+	// We should look in the past
+	// Get the (closest?) time in the array of window changes
+	// Proceed with logic 
+	// Apply the results in the present !!!!
 }
 
 void CowboyWindowManager::update()
@@ -120,6 +123,23 @@ void CowboyWindowManager::UpdateActiveWindows()
 	}
 }
 
+void CowboyWindowManager::StoreWindowsInformation()
+{
+	if (!isServer)
+		return;
+
+	// Assign the next index position array to the state of the windows in that moment 
+	for (int iter = 0; iter < MAX_SPAWN_WINDOWS; ++iter)
+		window_timed_states[next_index].windows[iter] = windows[iter];
+
+	// Get the time stamp
+	window_timed_states[next_index].time = Time.time; 
+
+	// As we fill the array in order, we can do this, iterating the array from front to back
+	if (++next_index > MAX_GAME_STATES)
+		next_index = 0;
+}
+
 void CowboyWindowManager::destroy()
 {
 
@@ -179,7 +199,7 @@ void PlayerCrosshair::start()
 	lifebar->sprite->order = 5;*/
 }
 
-void PlayerCrosshair::onMouse(const MouseController& mouse)
+void PlayerCrosshair::onMouse(const MouseController& mouse, const double& time_stamp)
 {
 	vec2 vp = App->modRender->GetViewportSize();
 	gameObject->position = { (float)mouse.x - vp.x * 0.5f, (float)mouse.y - vp.y * 0.5f };

@@ -106,8 +106,10 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				{
 					std::string playerName;
 					uint8 crosshairType;
+					double time_of_connection;
 					packet >> playerName;
 					packet >> crosshairType;
+					packet >> time_of_connection;
 
 					proxy->address.sin_family = fromAddress.sin_family;
 					proxy->address.sin_addr.S_un.S_addr = fromAddress.sin_addr.S_un.S_addr;
@@ -115,6 +117,11 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 					proxy->connected = true;
 					proxy->name = playerName;
 					proxy->clientId = nextClientId++;
+					// Client has its clock ticking since opening the app, not since connecting to server
+					proxy->time_created -= time_of_connection;	
+
+					LOG("Proxy time connection = %f", time_of_connection);
+					LOG("Proxy time creation = %f", proxy->time_created);
 
 					// Create new network object
 					vec2 initialPosition = 500.0f * vec2{ Random.next() - 0.5f, Random.next() - 0.5f};
@@ -189,16 +196,20 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 					packet >> inputData.buttonBits;
 					packet >> inputData.mousex;
 					packet >> inputData.mousey;
-
+					double time_stamp = 0.0;
+					packet >> time_stamp;
 					if (inputData.sequenceNumber >= proxy->nextExpectedInputSequenceNumber)
 					{
+						// Calculate the actual time in server side having in mind the time of creation
+						double actual_time = time_stamp + proxy->time_created;
+						//LOG("The server time is: %f - input time: %f", actual_time, time_stamp);
 						proxy->gamepad.horizontalAxis = inputData.horizontalAxis;
 						proxy->gamepad.verticalAxis = inputData.verticalAxis;
 						proxy->mouse.x = inputData.mousex;
 						proxy->mouse.y = inputData.mousey;
 						unpackInputControllerButtons(inputData.buttonBits, proxy->gamepad);
 						proxy->gameObject->behaviour->onInput(proxy->gamepad);
-						proxy->gameObject->behaviour->onMouse(proxy->mouse);
+						proxy->gameObject->behaviour->onMouse(proxy->mouse, actual_time);
 						proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;
 					}
 				}
@@ -373,6 +384,7 @@ ModuleNetworkingServer::ClientProxy * ModuleNetworkingServer::createClientProxy(
 	{
 		if (!clientProxies[i].connected)
 		{
+			clientProxies[i].time_created = Time.time;
 			return &clientProxies[i];
 		}
 	}

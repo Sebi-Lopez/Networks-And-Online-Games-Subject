@@ -201,8 +201,10 @@ void ModuleNetworkingClient::onUpdate()
 			packet << ClientMessage::Hello;
 			packet << playerName;
 			packet << spaceshipType;
+			packet << Time.time;
 
 			sendPacket(packet, serverAddress);
+			LOG("Trying to connect at time: %f", Time.time);
 		}
 	}
 	else if (state == ClientState::Connected)
@@ -260,6 +262,7 @@ void ModuleNetworkingClient::onUpdate()
 				packet << inputPacketData.buttonBits;
 				packet << inputPacketData.mousex;
 				packet << inputPacketData.mousey;
+				packet << Time.time;
 				//LOG("Pushing sequence number: %i", inputPacketData.sequenceNumber);
 			}
 			InputPacketData& last = inputData[(inputDataBack - 1) % ArrayCount(inputData)];

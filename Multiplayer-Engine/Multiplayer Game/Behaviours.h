@@ -1,6 +1,8 @@
 #pragma once
 
 #define MAX_SPAWN_WINDOWS 5
+#define MAX_GAME_STATES 10
+#define SECONDS_TO_RECORD_STATE 0.2f
 
 enum class BehaviourType : uint8;
 struct CowboyWindowManager;
@@ -16,7 +18,7 @@ struct Behaviour
 	virtual void start() { }
 
 	virtual void onInput(const InputController &input) { }
-	virtual void onMouse(const MouseController &mouse) { } // xd
+	virtual void onMouse(const MouseController &mouse, const double& time_stamp = 0.0) { } // xd
 
 	virtual void update() { }
 
@@ -57,7 +59,7 @@ struct PlayerCrosshair : public Behaviour
 	void start() override;
 
 	void onInput(const InputController &input) override;
-	void onMouse(const MouseController& mouse) override;
+	void onMouse(const MouseController& mouse, const double& time_stamp) override;
 
 	void update() override;
 
@@ -112,6 +114,13 @@ struct Targets
 	vec4 deathRect = {};
 };
 
+
+struct WindowTimedState
+{
+	CowboyWindow windows[MAX_SPAWN_WINDOWS] = {};
+	float time = 0.0f;
+};
+
 struct CowboyWindowManager : public Behaviour
 {
 
@@ -132,6 +141,11 @@ struct CowboyWindowManager : public Behaviour
 
 
 	CowboyWindow windows[MAX_SPAWN_WINDOWS]; // store windows gameobjects
+	
+	
+	WindowTimedState window_timed_states[MAX_GAME_STATES] = {};
+	float record_time = 0.0f;
+	int next_index = 0;
 
 	//
 
@@ -145,7 +159,7 @@ struct CowboyWindowManager : public Behaviour
 
 
 	//void onInput(const InputController& input) override;
-	void onMouse(const MouseController& mouse) override;
+	void onMouse(const MouseController& mouse, const double& time_stamp) override;
 
 	void update() override;
 
@@ -162,6 +176,8 @@ struct CowboyWindowManager : public Behaviour
 	void GameLoopUpdate();
 	void SpawnLogic();
 	void UpdateActiveWindows();
+
+	void StoreWindowsInformation(); 
 
 	void CloseAllWindows();
 	void OpenWindow(uint8 n);

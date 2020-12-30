@@ -9,6 +9,16 @@ struct GameObject
 	vec2 size = vec2{ 0.0f, 0.0f }; // NOTE(jesus): If equals 0, it takes the size of the texture
 	float angle = 0.0f;
 
+	// Interpolation component
+	vec2 initial_pos = vec2{ 0.0f, 0.0f };
+	float initial_angle = 0.0f; 
+
+	vec2 final_pos = vec2{ 0.0f, 0.0f };
+	float final_angle = 0.0f; 
+
+	float seconds_passed = 0.0f;
+
+
 	// Render component
 	Sprite *sprite = nullptr;
 	Animation *animation = nullptr;
@@ -38,6 +48,11 @@ struct GameObject
 		STATE_COUNT
 	};
 	State state = NON_EXISTING;
+
+public:
+
+	void UpdateInterpolationValues(vec2 pos, float _angle);
+	void Interpolate();
 
 private:
 

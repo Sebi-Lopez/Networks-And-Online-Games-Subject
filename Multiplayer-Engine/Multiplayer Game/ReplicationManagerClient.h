@@ -8,4 +8,6 @@ public:
 	void Read(const InputMemoryStream& packet);
 	void CreateObj(const InputMemoryStream& packet, const uint32 networkId);
 	void UpdateObj(const InputMemoryStream& packet, const uint32 networkId);
+
+	bool using_entity_interpolation = true;
 };

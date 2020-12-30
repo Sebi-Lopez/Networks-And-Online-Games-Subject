@@ -44,6 +44,9 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
 			newDelivery->mustSendCommands.push_back(nextCommand);
 
+			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
+			newDelivery->mustSendCommands.push_back(nextCommand);
+
 			break;
 		}
 		case ReplicationAction::Update:

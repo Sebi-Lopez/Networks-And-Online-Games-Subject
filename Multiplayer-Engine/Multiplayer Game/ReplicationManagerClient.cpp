@@ -114,7 +114,17 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 		//packet >> ss->hitPoints;
 		
 		obj2U->position = position;
+
 		//packet >> obj2U->angle;
+
+		if (using_entity_interpolation) {
+			obj2U->UpdateInterpolationValues(position, 0.f);
+		}
+		else
+		{
+			obj2U->position = position;
+		}
+
 		break;
 	}
 
@@ -154,7 +164,10 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 		packet >> crosshairType;
 		packet >> newObj->position.x;
 		packet >> newObj->position.y;
-		//packet >> newObj->angle;
+		
+		newObj->initial_pos = newObj->position;
+		newObj->final_pos = newObj->position;
+
 		newObj->size = { 100, 100 };
 
 		// Create sprite

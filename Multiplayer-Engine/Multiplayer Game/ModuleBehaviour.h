@@ -20,6 +20,8 @@ public:
 	Laser     * addLaser(GameObject *parentGameObject);*/
 
 	CrosshairRects GetCrosshairRects(uint8 type) const;
+	std::vector<PlayerCrosshair*> GetPlayersCrosshairs();
+
 
 private:
 

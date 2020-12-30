@@ -31,16 +31,30 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 			NetEntityType type = NetEntityType::None;
 			uint8 window_idx = 0;
 			WindowState wstate = WindowState::none;
+			uint32 hitNetId = 0;
+			int score = 0;
 
 			packet >> type;
 			packet >> window_idx;
 			packet >> wstate;
+			packet >> hitNetId;
+			packet >> score;
 
 			CowboyWindowManager* winMan = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
 			if (wstate == WindowState::open)
 				winMan->windows[window_idx].Open();
 			else if (wstate == WindowState::closed)
 				winMan->windows[window_idx].Close();
+
+			// add score to whatever player pertains
+			if (hitNetId != 0)
+			{
+				GameObject* pcgo = App->modLinkingContext->getNetworkGameObject(hitNetId);
+				PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(pcgo->behaviour);
+				pc->score += score;
+
+				LOG("INCREMENT SCORE: %i", score);
+			}
 
 			break;
 		}

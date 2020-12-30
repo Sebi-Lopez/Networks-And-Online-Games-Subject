@@ -84,7 +84,8 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 		case ReplicationAction::CowboyOrder:
 		{
 			GameObject* obj = App->modLinkingContext->getNetworkGameObject(nextCommand.networkId);
-			CowboyWindow* cbw = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour)->GetCowboyWindowWithNetworkId(obj->networkId);
+			CowboyWindowManager* cbwm = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
+			CowboyWindow* cbw = cbwm->GetCowboyWindowWithNetworkId(obj->networkId);
 
 			packet << obj->networkId;
 			packet << nextCommand.action;
@@ -93,6 +94,11 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 
 			packet << cbw->window_id;
 			packet << cbw->state;
+			packet << cbw->hitByNetworkId;
+			packet << cbwm->enemyScores[(int)cbw->currentEnemyType];		
+
+			if (cbw->hitByNetworkId != 0)
+				LOG("");
 
 			break;
 		}

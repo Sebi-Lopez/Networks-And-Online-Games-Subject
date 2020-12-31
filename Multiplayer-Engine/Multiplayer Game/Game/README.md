@@ -7,9 +7,9 @@
 - José Antonio Prieto 
 - Sebastià López
 
-## GAME NAME
+## DON'T SHOOT THE MEXICAN
 
-GAMENAME is a 2D shooter where you compete agains other players online in a firing range.
+Don't shoot the mexican, is a 2D shooter where you compete agains other players online in a firing range.
 You are at the far west, and there has been declared a Shooting competition in the tabern of a small city. 
 You must kill the bad guys that  appear in the windows of the tabern before your oponents! The more YOU kill, the more points for you in the competition!
 But be carefull! There are innocent people too! You must  avoid killing them in order to not lose your points!

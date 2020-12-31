@@ -127,6 +127,15 @@ void ScreenGame::gui()
 			current_game_time = Time.time - winMan->game_started_at;
 
 		duration = winMan->game_duration;
+
+		// TODO: find a better way
+		if (!isServer)
+		{
+			if (current_game_time > duration)
+			{
+				winMan->gameLoopState = GameState::none;
+			}
+		}
 	}
 
 	ImGui::Begin("ROUND TIME");

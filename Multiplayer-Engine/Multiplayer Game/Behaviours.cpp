@@ -200,7 +200,7 @@ void CowboyWindowManager::GameLoopUpdate() // server side
 
 		if (Time.time > game_started_at + game_duration)
 		{
-			gameLoopState = GameState::none;
+			gameLoopState = GameState::finished;
 			CloseAllWindows();
 
 		}

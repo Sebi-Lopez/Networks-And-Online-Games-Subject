@@ -108,7 +108,24 @@ void ScreenGame::gui()
 	}
 
 	ImGui::End();
-	
+
+	// TIME COUNTER WINDOW
+	float current_game_time = 0.0f;
+
+	CowboyWindowManager* winMan = nullptr;
+
+	if(windowManager != nullptr)
+		winMan = dynamic_cast<CowboyWindowManager*>(windowManager->behaviour);
+	if (winMan != nullptr)
+	{
+		if(winMan->gameLoopState == GameState::started)
+			current_game_time = Time.time - winMan->game_started_at;
+	}
+
+	ImGui::Begin("ROUND TIME");
+	ImGui::Text(" %f - of 60sec", current_game_time);
+
+	ImGui::End();
 }
 
 void ScreenGame::disable()

@@ -184,15 +184,27 @@ void CowboyWindowManager::GameLoopUpdate() // server side
 		{
 			PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(players[i]->behaviour);
 			pc->ready = false;
+			pc->score = 0;
+			NetworkUpdate(pc->gameObject);
 		}
 
 		gameLoopState = GameState::started;
+		game_started_at = Time.time;
+
 		break;
 	}
 	case GameState::started:
 	{
 		SpawnLogic();
 		UpdateActiveWindows();
+
+		if (Time.time > game_started_at + game_duration)
+		{
+			gameLoopState = GameState::none;
+			CloseAllWindows();
+
+		}
+
 		break;
 	}
 	default:

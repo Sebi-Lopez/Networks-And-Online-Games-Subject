@@ -129,10 +129,11 @@ struct CowboyWindowManager : public Behaviour
 	float min_interval_between_spawns_close = 0.5f;
 	float min_interval_between_spawns_open = 0.7f;
 
-	uint32 average_time_between_spawns = 1000;
+	//uint32 average_time_between_spawns = 1000;
 
-	uint32 countdown_duration = 5000;
-	uint32 game_duration = 10000;
+	float countdown_duration = 5.0f;
+	float game_duration = 60.f;
+	float game_started_at = 0.0f;
 
 	CowboyWindow windows[MAX_SPAWN_WINDOWS]; // store windows gameobjects
 	uint8 wIdx = 0;

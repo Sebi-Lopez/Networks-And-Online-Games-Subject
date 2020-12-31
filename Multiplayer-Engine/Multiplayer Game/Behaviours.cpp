@@ -198,7 +198,11 @@ void CowboyWindowManager::GameLoopUpdate() // server side
 		SpawnLogic();
 		UpdateActiveWindows();
 
-		if (Time.time > game_started_at + game_duration)
+		// check if we still have players connected too
+		std::vector<GameObject*> players = App->modNetServer->GetAllConnectedPlayers();
+
+		if (Time.time > game_started_at + game_duration ||
+			players.size() < 1)
 		{
 			gameLoopState = GameState::none;
 			CloseAllWindows();

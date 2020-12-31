@@ -201,9 +201,9 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 					cbwm->gameLoopState = GameState::started;
 					cbwm->game_started_at = Time.time; // NOTE: Little delay here
 				}
-				else if (gamestate == GameState::finished && thisClientState == GameState::started)
+				else if (gamestate != GameState::started && thisClientState == GameState::started)
 				{
-					cbwm->gameLoopState = GameState::finished;
+					cbwm->gameLoopState = GameState::none;
 				}
 
 			}

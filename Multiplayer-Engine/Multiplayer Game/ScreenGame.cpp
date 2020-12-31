@@ -92,7 +92,7 @@ void ScreenGame::gui()
 	}
 
 	if(myself != nullptr)
-		ImGui::Checkbox("im ready!", &dynamic_cast<PlayerCrosshair*>(myself)->ready);
+		ImGui::Checkbox("im ready!", &myself->ready);
 	
 	ImGui::Spacing();
 	ImGui::Spacing();

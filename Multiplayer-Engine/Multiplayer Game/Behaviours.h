@@ -138,7 +138,7 @@ struct CowboyWindowManager : public Behaviour
 
 	//
 
-	Targets targetsRects[5]; // store enemie/hostage rects
+	Targets targetsRects[(int)EnemyType::max]; // store enemie/hostage rects
 	vec4 collisionRect = {}; // store the area to perform coords collision check
 
 	//

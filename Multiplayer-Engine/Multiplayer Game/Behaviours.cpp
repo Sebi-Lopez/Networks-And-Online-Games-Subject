@@ -41,13 +41,13 @@ void CowboyWindowManager::start()
 	// TODO: fill with all rects from enemies/hostages
 
 	// targets
-	targetsRects[0].spawnRect = { 0,0, 113, 129 };
-	targetsRects[1].spawnRect = { 0, 129, 113, 129 };
-	targetsRects[2].spawnRect = { 0, 258, 113, 129 };
+	targetsRects[(int)EnemyType::bad1].spawnRect = { 0,0, 113, 129 };
+	targetsRects[(int)EnemyType::bad2].spawnRect = { 0, 129, 113, 129 };
+	targetsRects[(int)EnemyType::bad3].spawnRect = { 0, 258, 113, 129 };
 
 	// Hostages
-	targetsRects[3].spawnRect = { 261, 0, 113, 129 };
-	targetsRects[4].spawnRect = { 256, 129, 113, 129 };
+	targetsRects[(int)EnemyType::hostage1].spawnRect = { 261, 0, 113, 129 };
+	targetsRects[(int)EnemyType::hostage2].spawnRect = { 256, 129, 113, 129 };
 
 
 	// enemy score points
@@ -525,7 +525,7 @@ void CowboyWindow::Close()
 
 vec4 CowboyWindow::GetRandomEnemy(EnemyType& type)
 {
-	type = (EnemyType)(int)(((int)EnemyType::max - 1) * Random.next());
+	type = (EnemyType)(int)(((int)EnemyType::max) * Random.next());
 
 	if (type == EnemyType::none) // Case random 0. - 0.9
 		type = EnemyType::bad1;

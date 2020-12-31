@@ -512,6 +512,8 @@ void CowboyWindow::Open(EnemyType type)
 	winMan->current_opened_windows++;
 	winMan->last_window_opened_time = Time.time;
 
+	App->modSound->playAudioClip(App->modResources->audioClipDoorOpen);
+
 	if (winMan->isServer)
 		NetWorkUpdateTarget(window);
 }
@@ -532,6 +534,8 @@ void CowboyWindow::Close()
 
 	winMan->last_window_closed_id = window_id;
 	winMan->last_window_closed_time = Time.time;
+
+	App->modSound->playAudioClip(App->modResources->audioClipDoorClose);
 
 	if(winMan->isServer)
 		NetWorkUpdateTarget(window);

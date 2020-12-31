@@ -26,8 +26,10 @@ public:
 	AnimationClip *explosionClip = nullptr;
 	AnimationClip *bloodSplash = nullptr;
 
-	AudioClip *audioClipLaser = nullptr;
+	AudioClip *audioClipShot = nullptr;
 	AudioClip *audioClipExplosion = nullptr;
+	AudioClip *audioClipDoorOpen = nullptr;
+	AudioClip *audioClipDoorClose = nullptr;
 
 	bool finishedLoading = false;
 

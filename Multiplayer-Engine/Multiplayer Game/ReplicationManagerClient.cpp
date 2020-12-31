@@ -43,7 +43,7 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 			packet >> score;
 
 			CowboyWindowManager* winMan = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
-			if (wstate == WindowState::open)
+			if (wstate == WindowState::open) 
 				winMan->windows[window_idx].Open(enemyType);
 			else if (wstate == WindowState::closed)
 				winMan->windows[window_idx].Close();
@@ -74,6 +74,8 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 
 					bloodSplash->sprite->order = 150;
 					Destroy(bloodSplash, 5.0f);
+
+					// TOAUDIO: blood splash
 				}
 			}
 
@@ -283,6 +285,8 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 
 		particleShot->animation = App->modRender->addAnimation(particleShot);
 		particleShot->animation->clip = App->modResources->explosionClip;
+
+		App->modSound->playAudioClip(App->modResources->audioClipShot);
 		break;
 	}
 

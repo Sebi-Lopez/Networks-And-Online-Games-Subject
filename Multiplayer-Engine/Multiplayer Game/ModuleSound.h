@@ -43,7 +43,7 @@ private:
 
 	int16 Samples[48000 * 2];
 
-	AudioClip audioClips[2] = {};
+	AudioClip audioClips[4] = {};
 
 	enum audio_source_flags {
 		AUDIO_SOURCE_START_BIT = 1<<0,

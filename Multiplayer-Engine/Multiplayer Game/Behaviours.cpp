@@ -42,8 +42,8 @@ void CowboyWindowManager::start()
 
 	// targets
 	targetsRects[(int)EnemyType::bad1].spawnRect = { 0,0, 113, 129 };
-	targetsRects[(int)EnemyType::bad2].spawnRect = { 0, 129, 113, 129 };
-	targetsRects[(int)EnemyType::bad3].spawnRect = { 0, 258, 113, 129 };
+	targetsRects[(int)EnemyType::bad3].spawnRect = { 0, 129, 113, 129 };
+	targetsRects[(int)EnemyType::bad2].spawnRect = { 0, 258, 113, 129 };
 
 	// Hostages
 	targetsRects[(int)EnemyType::hostage1].spawnRect = { 261, 0, 113, 129 };
@@ -54,8 +54,8 @@ void CowboyWindowManager::start()
 	enemyScores[(int)EnemyType::bad1] = 30;
 	enemyScores[(int)EnemyType::bad2] = 60;
 	enemyScores[(int)EnemyType::bad3] = 120;
-	enemyScores[(int)EnemyType::hostage1] = -50;
-	enemyScores[(int)EnemyType::hostage2] = -100;
+	enemyScores[(int)EnemyType::hostage1] = -150;
+	enemyScores[(int)EnemyType::hostage2] = -300;
 
 
 	CloseAllWindows();

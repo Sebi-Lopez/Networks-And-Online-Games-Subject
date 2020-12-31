@@ -227,6 +227,18 @@ void CowboyWindowManager::UpdateActiveWindows()
 
 void CowboyWindowManager::destroy()
 {
+	// destroy all windows and targets data
+	/*for (int i = 0; i < MAX_SPAWN_WINDOWS; ++i)
+	{
+		Destroy(windows[i].window);
+	}*/
+
+	// destroy all targets from all windows
+	for (int i = 0; i < (int)EnemyType::max; ++i)
+	{
+		if(windows[i].target != nullptr)
+			Destroy(windows[i].target);
+	}
 
 }
 
@@ -335,6 +347,7 @@ void CowboyWindow::Update()
 	if (Time.time > spawned_at + lifetime)
 		Close();
 }
+
 
 void CowboyWindow::Open(EnemyType type)
 {

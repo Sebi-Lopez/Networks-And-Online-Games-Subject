@@ -21,7 +21,10 @@ Mouse Left Button: Shoot
 
 Objective: 
 Kill the bad guys.
-Not kill innocent people. 
+Not kill innocent people.
+
+When all players are ready to start, click on i'm ready! checkbox
+on Player info panel, the game starts immediately for all connected players!
 
 ## List of Implemented features 
 

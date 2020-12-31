@@ -180,7 +180,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				// TODO(you): Reliability on top of UDP lab session
 
 				// Read input data
-				while (packet.RemainingByteCount() > 0)
+				while (packet.RemainingByteCount() > 1) // NOTE: we expect a lonely bool at the end
 				{
 					InputPacketData inputData;
 					packet >> inputData.sequenceNumber;
@@ -204,6 +204,14 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 						proxy->nextExpectedInputSequenceNumber = inputData.sequenceNumber + 1;
 					}
 				}
+				// get the ready bits !
+				PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(proxy->gameObject->behaviour);
+				bool ready = false;
+				packet >> ready;
+				
+				if (pc != nullptr)
+					pc->ready = ready;
+				
 			}
 		}
 		else if (message == ClientMessage::Ping)

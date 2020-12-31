@@ -251,6 +251,7 @@ void ModuleNetworkingClient::onUpdate()
 			// Use this packet to send replication akcks
 			deliveryManagerClient.WriteSequenceNumbersPendingAck(packet);
 
+
 			for (uint32 i = inputDataFront; i < inputDataBack; ++i)
 			{
 				InputPacketData &inputPacketData = inputData[i % ArrayCount(inputData)];
@@ -266,6 +267,13 @@ void ModuleNetworkingClient::onUpdate()
 			InputPacketData& last = inputData[(inputDataBack - 1) % ArrayCount(inputData)];
 			//LOG("Sending %i input packets last Sequence Number: %i", inputDataBack - inputDataFront, last.sequenceNumber);
 
+			// NOTE: pack the player ready on last input bits
+			PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(App->modLinkingContext->getNetworkGameObject(networkId)->behaviour);
+			bool ready = false;
+			if (pc != nullptr)
+				ready = pc->ready;
+
+			packet << ready;
 			sendPacket(packet, serverAddress);
 		}
 

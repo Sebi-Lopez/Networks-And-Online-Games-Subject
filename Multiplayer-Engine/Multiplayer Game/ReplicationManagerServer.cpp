@@ -78,10 +78,6 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 					gamestate = cbwm->gameLoopState;
 
 				packet << gamestate;
-
-				if (pc->ready)
-					LOG("");
-
 			}
 
 			packet << obj->position.x;

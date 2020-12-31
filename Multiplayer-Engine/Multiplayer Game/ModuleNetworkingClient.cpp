@@ -70,6 +70,14 @@ void ModuleNetworkingClient::onGui()
 		if (state == ClientState::Connecting)
 		{
 			ImGui::Text("Connecting to server...");
+
+			ImGui::Spacing();
+			ImGui::Separator(); 
+			ImGui::Spacing();
+
+			ImGui::Text("A game is probably being hold at the server");
+			ImGui::Text("Wait till its over to connect automatically");
+
 		}
 		else if (state == ClientState::Connected)
 		{

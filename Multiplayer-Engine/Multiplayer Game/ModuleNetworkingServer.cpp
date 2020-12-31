@@ -132,6 +132,11 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 					// Create new network object
 					vec2 initialPosition = 500.0f * vec2{ Random.next() - 0.5f, Random.next() - 0.5f};
 					//float initialAngle = 360.0f * Random.next();
+					
+					CowboyWindowManager* winMan = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
+					if (winMan != nullptr && winMan->gameLoopState == GameState::started)
+						return;
+
 					proxy->gameObject = spawnPlayer(crosshairType, initialPosition, playerName);
 				}
 				else
@@ -497,8 +502,12 @@ void ModuleNetworkingServer::updateNetworkObject(GameObject * gameObject, bool s
 	{
 		if (clientProxies[i].connected)
 		{
-			if (clientProxies[i].gameObject->networkId == gameObject->networkId && !self_inform)
-				continue;
+			if (clientProxies[i].gameObject != nullptr)
+			{
+				if (clientProxies[i].gameObject->networkId == gameObject->networkId && !self_inform)
+					continue;
+			}
+			
 			// TODO(you): World state replication lab session
 			clientProxies[i].replication.Update(gameObject->networkId);
 		}

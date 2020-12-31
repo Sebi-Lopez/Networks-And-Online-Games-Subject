@@ -47,6 +47,7 @@ bool ModuleResources::init()
 	audioClipExplosion = App->modSound->loadAudioClip("explosion.wav");
 	audioClipManHit = App->modSound->loadAudioClip("man_hit.wav");
 	audioClipWomanHit = App->modSound->loadAudioClip("woman_hit.wav");
+	audioClipMexicanHit = App->modSound->loadAudioClip("mexican_hit.wav");
 	//App->modSound->playAudioClip(audioClipExplosion);
 
 	return true;

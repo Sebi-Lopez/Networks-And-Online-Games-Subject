@@ -32,6 +32,7 @@ public:
 	AudioClip *audioClipDoorClose = nullptr;
 	AudioClip *audioClipManHit= nullptr;
 	AudioClip *audioClipWomanHit= nullptr;
+	AudioClip *audioClipMexicanHit= nullptr;
 
 	bool finishedLoading = false;
 

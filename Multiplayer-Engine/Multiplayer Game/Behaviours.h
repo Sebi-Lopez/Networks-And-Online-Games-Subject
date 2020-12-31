@@ -52,6 +52,7 @@ struct PlayerCrosshair : public Behaviour
 	std::string playerName;
 	CrosshairRects reticle;
 	int score = 0;
+	bool ready = false; // determine if the player is ready to countdown
 
 	BehaviourType type() const override { return BehaviourType::crosshair; }
 

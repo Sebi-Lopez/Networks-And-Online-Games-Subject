@@ -65,11 +65,11 @@ struct PlayerCrosshair : public Behaviour
 
 	void destroy() override;
 
-	void onCollisionTriggered(Collider &c1, Collider &c2) override;
+	/*void onCollisionTriggered(Collider &c1, Collider &c2) override;
 
 	void write(OutputMemoryStream &packet) override;
 
-	void read(const InputMemoryStream &packet) override;
+	void read(const InputMemoryStream &packet) override;*/
 };
 
 enum class GameState
@@ -179,41 +179,3 @@ struct CowboyWindowManager : public Behaviour
 	CowboyWindow* GetCowboyWindowWithNetworkId(uint32 networkId);
 
 };
-
-
-//struct Laser : public Behaviour
-//{
-//	float secondsSinceCreation = 0.0f;
-//
-//	BehaviourType type() const override { return BehaviourType::Laser; }
-//
-//	void start() override;
-//
-//	void update() override;
-//};
-
-
-//struct Spaceship : public Behaviour
-//{
-//	static const uint8 MAX_HIT_POINTS = 5;
-//	uint8 hitPoints = MAX_HIT_POINTS;
-//	uint8 spaceShipType = 0;
-//
-//	GameObject *lifebar = nullptr;
-//
-//	BehaviourType type() const override { return BehaviourType::Spaceship; }
-//
-//	void start() override;
-//
-//	void onInput(const InputController &input) override;
-//
-//	void update() override;
-//
-//	void destroy() override;
-//
-//	void onCollisionTriggered(Collider &c1, Collider &c2) override;
-//
-//	void write(OutputMemoryStream &packet) override;
-//
-//	void read(const InputMemoryStream &packet) override;
-//};

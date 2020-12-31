@@ -230,47 +230,9 @@ void CowboyWindowManager::destroy()
 
 }
 
-void CowboyWindowManager::write(OutputMemoryStream& packet)
-{
-	// WIP
-}
+void CowboyWindowManager::write(OutputMemoryStream& packet)	{}
 
-void CowboyWindowManager::read(const InputMemoryStream& packet)
-{
-	// WIP
-}
-
-
-
-//void Laser::start()
-//{
-//	gameObject->networkInterpolationEnabled = false;
-//
-//	App->modSound->playAudioClip(App->modResources->audioClipLaser);
-//}
-//
-//void Laser::update()
-//{
-//	secondsSinceCreation += Time.deltaTime;
-//
-//	const float pixelsPerSecond = 1000.0f;
-//	gameObject->position += vec2FromDegrees(gameObject->angle) * pixelsPerSecond * Time.deltaTime;
-//
-//	if (isServer)
-//	{
-//		const float neutralTimeSeconds = 0.1f;
-//		if (secondsSinceCreation > neutralTimeSeconds && gameObject->collider == nullptr) {
-//			gameObject->collider = App->modCollision->addCollider(ColliderType::Laser, gameObject);
-//		}
-//
-//		const float lifetimeSeconds = 2.0f;
-//		if (secondsSinceCreation >= lifetimeSeconds) {
-//			NetworkDestroy(gameObject);
-//		}
-//	}
-//}
-
-
+void CowboyWindowManager::read(const InputMemoryStream& packet)	{}
 
 
 
@@ -278,10 +240,6 @@ void PlayerCrosshair::start()
 {
 	gameObject->tag = (uint32)(Random.next() * UINT_MAX);
 
-	/*lifebar = Instantiate();
-	lifebar->sprite = App->modRender->addSprite(lifebar);
-	lifebar->sprite->pivot = vec2{ 0.0f, 0.5f };
-	lifebar->sprite->order = 5;*/
 }
 
 void PlayerCrosshair::onMouse(const MouseController& mouse)
@@ -326,22 +284,7 @@ void PlayerCrosshair::onMouse(const MouseController& mouse)
 
 					winManager->windows[winIdx].hitByNetworkId = gameObject->networkId;
 					winManager->windows[winIdx].Close();
-					//NetWorkUpdateTarget(winManager->windows[winIdx].window);
-
-					//GameObject* blood_splash = NetworkInstantiate();
-					//blood_splash->netType = NetEntityType::Blood;
-					//blood_splash->position = gameObject->position;
-					////particleShot->angle = gameObject->angle;
-					//blood_splash->size = { 125, 125 };
-
-					//blood_splash->sprite = App->modRender->addSprite(blood_splash);
-					//blood_splash->sprite->texture = App->modResources->blood;
-					//blood_splash->sprite->order = 150;
-
-					//blood_splash->animation = App->modRender->addAnimation(blood_splash);
-					//blood_splash->animation->clip = App->modResources->bloodSplash;
-					//
-					//NetworkDestroy(blood_splash, 5.0f);
+				
 				}
 				else
 				{
@@ -359,62 +302,10 @@ void PlayerCrosshair::onMouse(const MouseController& mouse)
 	
 }
 
-void PlayerCrosshair::onInput(const InputController &input)
-{
-	/*if (input.horizontalAxis != 0.0f)
-	{
-		const float rotateSpeed = 180.0f;
-		gameObject->angle += input.horizontalAxis * rotateSpeed * Time.deltaTime;
-
-		if (isServer)
-		{
-			NetworkUpdate(gameObject);
-		}
-	}*/
-
-	/*if (input.actionDown == ButtonState::Pressed)
-	{
-		const float advanceSpeed = 200.0f;
-		gameObject->position += vec2FromDegrees(gameObject->angle) * advanceSpeed * Time.deltaTime;
-
-		if (isServer)
-		{
-			NetworkUpdate(gameObject);
-		}
-	}*/
-
-
-	/*if (input.actionLeft == ButtonState::Press)
-	{
-		if (isServer)
-		{
-			GameObject *laser = NetworkInstantiate();
-
-			laser->netType = NetEntityType::Laser;
-			laser->position = gameObject->position;
-			laser->angle = gameObject->angle;
-			laser->size = { 20, 60 };
-
-			laser->sprite = App->modRender->addSprite(laser);
-			laser->sprite->order = 3;
-			laser->sprite->texture = App->modResources->laser;
-
-			Laser *laserBehaviour = App->modBehaviour->addLaser(laser);
-			laserBehaviour->isServer = isServer;
-
-			laser->tag = gameObject->tag;
-		}
-	}*/
-}
+void PlayerCrosshair::onInput(const InputController &input)	{}
 
 void PlayerCrosshair::update()
 {
-	/*static const vec4 colorAlive = vec4{ 0.2f, 1.0f, 0.1f, 0.5f };
-	static const vec4 colorDead = vec4{ 1.0f, 0.2f, 0.1f, 0.5f };
-	const float lifeRatio = max(0.01f, (float)(hitPoints) / (MAX_HIT_POINTS));
-	lifebar->position = gameObject->position + vec2{ -50.0f, -50.0f };
-	lifebar->size = vec2{ lifeRatio * 80.0f, 5.0f };
-	lifebar->sprite->color = lerp(colorDead, colorAlive, lifeRatio);*/
 
 	if (isServer)
 		return;
@@ -426,7 +317,7 @@ void PlayerCrosshair::update()
 		gameObject->position = { (float)Mouse.x, (float)Mouse.y};
 
 		// NOTE: first try to instantiate all clients from server to check how it feels if not:
-		// TODO: instantiate particle for this client on local
+		// TODO: instantiate particle for this client on local if not
 
 	}
 }
@@ -436,63 +327,6 @@ void PlayerCrosshair::destroy()
 	//Destroy(lifebar);
 }
 
-void PlayerCrosshair::onCollisionTriggered(Collider &c1, Collider &c2)
-{
-	if (c2.type == ColliderType::Laser && c2.gameObject->tag != gameObject->tag)
-	{
-		if (isServer)
-		{
-			NetworkDestroy(c2.gameObject); // Destroy the laser
-		
-			/*if (hitPoints > 0)
-			{
-				hitPoints--;
-				NetworkUpdate(gameObject);
-			}*/
-
-			float size = 30 + 50.0f * Random.next();
-			vec2 position = gameObject->position + 50.0f * vec2{Random.next() - 0.5f, Random.next() - 0.5f};
-
-			//if (hitPoints <= 0)
-			//{
-			//	// Centered big explosion
-			//	size = 250.0f + 100.0f * Random.next();
-			//	position = gameObject->position;
-
-			//	NetworkDestroy(gameObject);
-			//}
-
-			/*GameObject *explosion = NetworkInstantiate();
-			explosion->netType = NetEntityType::Explosion;
-			explosion->position = position;
-			explosion->size = vec2{ size, size };
-			explosion->angle = 365.0f * Random.next();
-
-			explosion->sprite = App->modRender->addSprite(explosion);
-			explosion->sprite->texture = App->modResources->explosion1;
-			explosion->sprite->order = 100;
-
-			explosion->animation = App->modRender->addAnimation(explosion);
-			explosion->animation->clip = App->modResources->explosionClip;
-
-			NetworkDestroy(explosion, 2.0f);*/
-
-			// NOTE(jesus): Only played in the server right now...
-			// You need to somehow make this happen in clients
-			App->modSound->playAudioClip(App->modResources->audioClipExplosion);
-		}
-	}
-}
-
-void PlayerCrosshair::write(OutputMemoryStream & packet)
-{
-	//packet << hitPoints;
-}
-
-void PlayerCrosshair::read(const InputMemoryStream & packet)
-{
-	//packet >> hitPoints;
-}
 
 // --------------------- WINDOW itself logic ------------------------------------
 

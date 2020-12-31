@@ -448,10 +448,6 @@ GameObject * ModuleNetworkingServer::spawnPlayer(uint8 crosshairType, vec2 initi
 	gameObject->size = { 100, 100 };
 	//gameObject->angle = initialAngle;
 
-	// Create collider
-	//gameObject->collider = App->modCollision->addCollider(ColliderType::Player, gameObject);
-	//gameObject->collider->isTrigger = true; // NOTE(jesus): This object will receive onCollisionTriggered events
-
 	// TODO TODO: create on another place a function to contain these lines, to call from server or client from same place
 	// Create behaviour
 	PlayerCrosshair* crossHairBh = App->modBehaviour->addCrosshair(gameObject);

@@ -52,10 +52,6 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 
 			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
 			newDelivery->mustSendCommands.push_back(nextCommand);
-
-			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
-			newDelivery->mustSendCommands.push_back(nextCommand);
-
 			break;
 		}
 		case ReplicationAction::Update:
@@ -106,6 +102,9 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 
 			if (cbw->hitByNetworkId != 0)
 				LOG("");
+
+			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
+			newDelivery->mustSendCommands.push_back(nextCommand);
 
 			break;
 		}

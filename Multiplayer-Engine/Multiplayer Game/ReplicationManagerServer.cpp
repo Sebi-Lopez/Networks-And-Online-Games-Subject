@@ -72,6 +72,12 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 				PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(obj->behaviour);
 				packet << pc->score;
 				packet << pc->ready;
+				GameState gamestate = GameState::none;
+				CowboyWindowManager* cbwm = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
+				if (cbwm != nullptr)
+					gamestate = cbwm->gameLoopState;
+
+				packet << gamestate;
 
 				if (pc->ready)
 					LOG("");

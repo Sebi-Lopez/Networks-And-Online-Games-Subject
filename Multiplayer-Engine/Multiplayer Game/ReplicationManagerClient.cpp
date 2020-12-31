@@ -140,6 +140,7 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 	uint8 hitPoints;
 	int score = 0;
 	bool ready = false;
+	GameState gamestate = GameState::none;
 
 	switch (type)
 	{
@@ -149,6 +150,7 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 	{
 		packet >> score;
 		packet >> ready;
+		packet >> gamestate;
 
 		packet >> position.x;
 		packet >> position.y;
@@ -182,6 +184,26 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 		PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(obj2U->behaviour);
 		pc->score = score;
 		pc->ready = ready;
+
+		// get winman and adjust the gamestate and started time
+		GameObject* winMan = App->modScreen->screenGame->windowManager;
+		if (winMan != nullptr)
+		{
+			CowboyWindowManager* cbwm = dynamic_cast<CowboyWindowManager*>(winMan->behaviour);
+
+			if (cbwm != nullptr)
+			{
+				// if our state is other tan started, start if we receive started
+				GameState thisClientState = cbwm->gameLoopState;
+
+				if (gamestate == GameState::started && thisClientState != GameState::started)
+				{
+					cbwm->gameLoopState = GameState::started;
+					cbwm->game_started_at = Time.time; // NOTE: Little delay here
+				}
+
+			}
+		}
 
 		
 

@@ -82,7 +82,7 @@ void ScreenGame::gui()
 	
 	for (int i = 0; i < players.size(); ++i)
 	{
-		ImGui::Text("%i", (PlayerCrosshair*)players[i]->score);
+		ImGui::Text("%s : %i", (PlayerCrosshair*)players[i]->playerName.c_str(), (PlayerCrosshair*)players[i]->score);
 	}
 
 	ImGui::End();

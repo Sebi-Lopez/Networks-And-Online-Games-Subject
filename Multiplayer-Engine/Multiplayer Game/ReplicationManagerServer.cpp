@@ -30,6 +30,7 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 			{
 				PlayerCrosshair* behaviour = dynamic_cast<PlayerCrosshair*>(obj->behaviour);
 				packet << behaviour->reticle.crosshairType;
+				packet << behaviour->playerName;
 				
 			}
 			else if (type == NetEntityType::CowboyWindow)

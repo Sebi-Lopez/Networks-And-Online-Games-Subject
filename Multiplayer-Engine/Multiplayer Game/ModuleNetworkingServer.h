@@ -78,7 +78,7 @@ public:
 	// Spawning network objects
 	//////////////////////////////////////////////////////////////////////
 
-	GameObject * spawnPlayer(uint8 crosshairType, vec2 initialPosition);
+	GameObject * spawnPlayer(uint8 crosshairType, vec2 initialPosition, std::string playerName);
 
 
 

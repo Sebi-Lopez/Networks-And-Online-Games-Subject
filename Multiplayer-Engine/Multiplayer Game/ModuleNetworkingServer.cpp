@@ -119,7 +119,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 					// Create new network object
 					vec2 initialPosition = 500.0f * vec2{ Random.next() - 0.5f, Random.next() - 0.5f};
 					//float initialAngle = 360.0f * Random.next();
-					proxy->gameObject = spawnPlayer(crosshairType, initialPosition);
+					proxy->gameObject = spawnPlayer(crosshairType, initialPosition, playerName);
 				}
 				else
 				{
@@ -413,7 +413,7 @@ void ModuleNetworkingServer::destroyClientProxy(ClientProxy *clientProxy)
 // Spawning
 //////////////////////////////////////////////////////////////////////
 
-GameObject * ModuleNetworkingServer::spawnPlayer(uint8 crosshairType, vec2 initialPosition)
+GameObject * ModuleNetworkingServer::spawnPlayer(uint8 crosshairType, vec2 initialPosition, std::string playerName)
 {
 	// Create a new game object with the player properties
 	GameObject *gameObject = NetworkInstantiate();
@@ -430,6 +430,7 @@ GameObject * ModuleNetworkingServer::spawnPlayer(uint8 crosshairType, vec2 initi
 	// Create behaviour
 	PlayerCrosshair* crossHairBh = App->modBehaviour->addCrosshair(gameObject);
 	crossHairBh->reticle = App->modBehaviour->GetCrosshairRects(crosshairType);
+	crossHairBh->playerName = playerName;
 	gameObject->behaviour = crossHairBh;
 	gameObject->behaviour->isServer = true;
 

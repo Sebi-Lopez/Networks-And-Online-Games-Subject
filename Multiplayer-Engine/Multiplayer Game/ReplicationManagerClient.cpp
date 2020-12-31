@@ -194,8 +194,10 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(newObj, networkId);
 		newObj->netType = NetEntityType::Crosshair;
 
+		std::string playerName;
 		uint8 crosshairType = 0;
 		packet >> crosshairType;
+		packet >> playerName;
 		packet >> newObj->position.x;
 		packet >> newObj->position.y;
 		
@@ -218,6 +220,7 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 		// Create behaviour
 		PlayerCrosshair* crossHairBh = App->modBehaviour->addCrosshair(newObj);
 		crossHairBh->reticle = App->modBehaviour->GetCrosshairRects(crosshairType);
+		crossHairBh->playerName = playerName;
 		newObj->behaviour = crossHairBh;
 
 

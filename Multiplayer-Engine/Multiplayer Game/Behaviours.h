@@ -49,7 +49,7 @@ struct CrosshairRects
 
 struct PlayerCrosshair : public Behaviour
 {
-	
+	std::string playerName;
 	CrosshairRects reticle;
 	int score = 0;
 

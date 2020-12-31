@@ -185,6 +185,7 @@ void CowboyWindowManager::GameLoopUpdate() // server side
 			PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(players[i]->behaviour);
 			pc->ready = false;
 			pc->score = 0;
+			NetworkUpdate(pc->gameObject);
 		}
 
 		gameLoopState = GameState::started;

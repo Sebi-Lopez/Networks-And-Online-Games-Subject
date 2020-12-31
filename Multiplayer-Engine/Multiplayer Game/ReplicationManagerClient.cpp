@@ -76,6 +76,10 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 					Destroy(bloodSplash, 5.0f);
 
 					// TOAUDIO: blood splash
+					if(score > 0)
+						App->modSound->playAudioClip(App->modResources->audioClipManHit);
+					else 
+						App->modSound->playAudioClip(App->modResources->audioClipWomanHit);
 				}
 			}
 

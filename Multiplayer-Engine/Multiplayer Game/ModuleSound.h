@@ -43,7 +43,7 @@ private:
 
 	int16 Samples[48000 * 2];
 
-	AudioClip audioClips[4] = {};
+	AudioClip audioClips[6] = {};
 
 	enum audio_source_flags {
 		AUDIO_SOURCE_START_BIT = 1<<0,
@@ -57,7 +57,7 @@ private:
 		uint8 flags = 0;
 	};
 
-	audio_source audioSources[2] = {};
+	audio_source audioSources[6] = {};
 };
 
 #endif // MODULE_SOUND_H

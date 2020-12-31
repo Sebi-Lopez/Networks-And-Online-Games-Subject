@@ -179,6 +179,13 @@ void CowboyWindowManager::GameLoopUpdate() // server side
 				return;
 		}
 
+		// iterate another time the connected players to force false the ready for next round
+		for (int i = 0; i < players.size(); ++i)
+		{
+			PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(players[i]->behaviour);
+			pc->ready = false;
+		}
+
 		gameLoopState = GameState::started;
 		break;
 	}

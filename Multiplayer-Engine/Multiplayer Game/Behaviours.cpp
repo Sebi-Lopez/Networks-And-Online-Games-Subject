@@ -289,20 +289,20 @@ void PlayerCrosshair::onMouse(const MouseController& mouse)
 					winManager->windows[winIdx].Close();
 					//NetWorkUpdateTarget(winManager->windows[winIdx].window);
 
-					GameObject* blood_splash = NetworkInstantiate();
-					blood_splash->netType = NetEntityType::Blood;
-					blood_splash->position = gameObject->position;
-					//particleShot->angle = gameObject->angle;
-					blood_splash->size = { 125, 125 };
+					//GameObject* blood_splash = NetworkInstantiate();
+					//blood_splash->netType = NetEntityType::Blood;
+					//blood_splash->position = gameObject->position;
+					////particleShot->angle = gameObject->angle;
+					//blood_splash->size = { 125, 125 };
 
-					blood_splash->sprite = App->modRender->addSprite(blood_splash);
-					blood_splash->sprite->texture = App->modResources->blood;
-					blood_splash->sprite->order = 150;
+					//blood_splash->sprite = App->modRender->addSprite(blood_splash);
+					//blood_splash->sprite->texture = App->modResources->blood;
+					//blood_splash->sprite->order = 150;
 
-					blood_splash->animation = App->modRender->addAnimation(blood_splash);
-					blood_splash->animation->clip = App->modResources->bloodSplash;
-					
-					NetworkDestroy(blood_splash, 5.0f);
+					//blood_splash->animation = App->modRender->addAnimation(blood_splash);
+					//blood_splash->animation->clip = App->modResources->bloodSplash;
+					//
+					//NetworkDestroy(blood_splash, 5.0f);
 				}
 				else
 				{

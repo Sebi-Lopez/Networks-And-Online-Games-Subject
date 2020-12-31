@@ -54,8 +54,27 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 				GameObject* pcgo = App->modLinkingContext->getNetworkGameObject(hitNetId);
 				PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(pcgo->behaviour);
 				pc->score += score;
-
 				LOG("INCREMENT SCORE: %i", score);
+
+				if (pcgo->networkId == App->modNetClient->GetNetworkID())
+				{
+					GameObject* bloodSplash = Instantiate();
+					//App->modLinkingContext->registerNetworkGameObjectWithNetworkId(bloodSplash, networkId);
+					bloodSplash->netType = NetEntityType::Blood;
+					bloodSplash->position.x = pc->gameObject->position.x;
+					bloodSplash->position.y = pc->gameObject->position.y;
+					//particleShot->angle = gameObject->angle;
+					bloodSplash->size = { 125, 125 };
+
+					bloodSplash->sprite = App->modRender->addSprite(bloodSplash);
+					bloodSplash->sprite->texture = App->modResources->blood;
+
+					bloodSplash->animation = App->modRender->addAnimation(bloodSplash);
+					bloodSplash->animation->clip = App->modResources->bloodSplash;
+
+					bloodSplash->sprite->order = 150;
+					Destroy(bloodSplash, 5.0f);
+				}
 			}
 
 			break;

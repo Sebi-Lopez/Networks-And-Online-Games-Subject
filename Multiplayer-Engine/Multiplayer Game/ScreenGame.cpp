@@ -123,8 +123,12 @@ void ScreenGame::gui()
 		winMan = dynamic_cast<CowboyWindowManager*>(windowManager->behaviour);
 	if (winMan != nullptr)
 	{
-		if(winMan->gameLoopState == GameState::started)
+		if (winMan->gameLoopState == GameState::started)
+		{
 			current_game_time = Time.time - winMan->game_started_at;
+			if(myself)
+				myself->ready = false;
+		}
 
 		duration = winMan->game_duration;
 

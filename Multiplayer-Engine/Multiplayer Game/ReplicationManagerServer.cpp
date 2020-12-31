@@ -3,7 +3,7 @@
 // TODO(you): World state replication lab session
 #include "ReplicationManagerServer.h"
 
-void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager* deliveryManager, std::list<ReplicationCommand>& commands)
+void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager* deliveryManager, std::list<ReplicationCommand>& commands, std::list<WindowInfo>& windowsInfo, bool isResending)
 {
 	Delivery* newDelivery = deliveryManager->WriteSequenceNumber(packet);
 
@@ -51,10 +51,6 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 
 			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
 			newDelivery->mustSendCommands.push_back(nextCommand);
-
-			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
-			newDelivery->mustSendCommands.push_back(nextCommand);
-
 			break;
 		}
 		case ReplicationAction::Update:
@@ -92,13 +88,58 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 			NetEntityType type = obj->netType;
 			packet << type;
 
-			packet << cbw->window_id;
-			packet << cbw->state;
-			packet << cbw->hitByNetworkId;
-			packet << cbwm->enemyScores[(int)cbw->currentEnemyType];		
+			uint8  window_id;
+			WindowState state;
+			uint32 hitByNetworkId;
+			EnemyType currentEnemyType;
 
-			if (cbw->hitByNetworkId != 0)
+			// The data will be filled either with the live info or with the saved info from a dropped packet
+			if (!isResending)
+			{
+				window_id = cbw->window_id;
+				state = cbw->state;
+				hitByNetworkId = cbw->hitByNetworkId;
+				currentEnemyType = cbw->currentEnemyType;
+			}
+			else
+			{
+				if (windowsInfo.empty())
+				{
+					ELOG("Window info that cointained lost data from an old package is not found");
+					break;
+				}
+
+				// Pop the first value of the list 
+				WindowInfo windowInfo = windowsInfo.front(); 
+				windowsInfo.erase(windowsInfo.begin());
+				LOG("Sending Window Info from the past!");
+				window_id = windowInfo.window_id;
+				state = windowInfo.state;
+				hitByNetworkId = windowInfo.hitByNetworkId;
+				currentEnemyType = windowInfo.currentEnemyType;
+			}
+
+			// Send the filled data 
+
+			packet << window_id;
+			packet << state;
+			packet << hitByNetworkId;
+			packet << cbwm->enemyScores[(int)currentEnemyType];		
+
+			if (hitByNetworkId != 0)
 				LOG("");
+
+			newDelivery->deliveryDelegate = new DeliveryMustSend(newDelivery);
+			newDelivery->mustSendCommands.push_back(nextCommand);
+			
+			// Fill the info of the safety delivery about the window
+			WindowInfo windowInfo;
+			windowInfo.window_id = window_id;
+			windowInfo.state = state;
+			windowInfo.hitByNetworkId = hitByNetworkId;
+			windowInfo.currentEnemyType = currentEnemyType;
+
+			newDelivery->windowsInfo.push_back(windowInfo);
 
 			break;
 		}

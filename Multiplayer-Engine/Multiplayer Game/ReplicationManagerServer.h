@@ -23,15 +23,13 @@ public:
 	void UpdateCowboyWindow(uint32 networkId);
 	void Destroy(uint32 networkId);
 
-	void Write(OutputMemoryStream& packet, DeliveryManager* deliveryManager, std::list<ReplicationCommand>& commands);
+	void Write(OutputMemoryStream& packet, DeliveryManager* deliveryManager, std::list<ReplicationCommand>& commands, std::list<WindowInfo>& windowsInfo, bool isResending = false); // xd
 
 	std::list<ReplicationCommand> commandsList; 
-	std::list<ReplicationCommand> mustReSendList; 
 
-	//ReplicationCommand actions[MAX_NETWORK_OBJECTS]; // waste, maybe only need the current objects to modify
-	//std::map<uint32, ReplicationCommand> actions;
-	//ReplicationCommand actions[MAX_ACTIONS];
-	//uint8 nextAction;
+	// Delivery Manager Resending info 
+	std::list<ReplicationCommand> mustReSendList; 
+	std::list<WindowInfo> windowInfoResendList;
 
 	float lastReplicationSent = 0.0f; 
 };

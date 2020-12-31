@@ -155,7 +155,7 @@ void ModuleNetworkingServer::onPacketReceived(const InputMemoryStream &packet, c
 				repliPacket << PROTOCOL_ID;
 				repliPacket << ServerMessage::Replication;
 				repliPacket << proxy->nextExpectedInputSequenceNumber;
-				proxy->replication.Write(repliPacket, &proxy->deliveryManager, proxy->replication.commandsList);
+				proxy->replication.Write(repliPacket, &proxy->deliveryManager, proxy->replication.commandsList, proxy->replication.windowInfoResendList);
 				sendPacket(repliPacket, fromAddress);
 				// -----------------------------------------------------------------------------
 
@@ -282,7 +282,7 @@ void ModuleNetworkingServer::onUpdate()
 					//LOG("Server: Next expected Input Sequence Number: %i", clientProxy.nextExpectedInputSequenceNumber);
 
 					// Actual replication
-					clientProxy.replication.Write(commandsPacket, &clientProxy.deliveryManager, clientProxy.replication.commandsList);
+					clientProxy.replication.Write(commandsPacket, &clientProxy.deliveryManager, clientProxy.replication.commandsList, clientProxy.replication.windowInfoResendList);
 
 					sendPacket(commandsPacket, clientProxy.address);
 				}
@@ -318,7 +318,7 @@ void ModuleNetworkingServer::onUpdate()
 					}
 					
 					// Actual replication
-					clientProxy.replication.Write(commandsPacket, &clientProxy.deliveryManager, clientProxy.replication.mustReSendList);
+					clientProxy.replication.Write(commandsPacket, &clientProxy.deliveryManager, clientProxy.replication.mustReSendList, clientProxy.replication.windowInfoResendList, true);
 
 					sendPacket(commandsPacket, clientProxy.address);
 				}

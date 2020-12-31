@@ -142,4 +142,6 @@ void DeliveryMustSend::OnDeliveryFailure(DeliveryManager* deliveryManager, Repli
 	// https://stackoverflow.com/questions/1449703/how-to-append-a-listt-object-to-another
 	replication->mustReSendList.splice(replication->mustReSendList.end(), delivery->mustSendCommands);
 
+	replication->windowInfoResendList.splice(replication->windowInfoResendList.end(), delivery->windowsInfo);
+
 }

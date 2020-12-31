@@ -4,11 +4,14 @@
 // TODO(you): Reliability on top of UDP lab session
 
 #include <list>
+#include <queue>
 
 class DeliveryManager;
 class Delivery;
 class ReplicationCommand;
 class ReplicationManagerServer; 
+enum class WindowState;
+enum class EnemyType;
 
 class DeliveryDelegate {
 
@@ -30,6 +33,16 @@ public:
 
 	void OnDeliverySuccess(DeliveryManager* deliveryManager, ReplicationManagerServer* replication) override;
 	void OnDeliveryFailure(DeliveryManager* deliveryManager, ReplicationManagerServer* replication) override;
+};
+
+
+
+struct WindowInfo {
+
+	uint8  window_id;
+	WindowState state;
+	uint32 hitByNetworkId;
+	EnemyType currentEnemyType;
 
 };
 
@@ -52,6 +65,7 @@ struct Delivery {
 	// We save a list of commands that must be sended no matter what, 
 	// so we can send them later if the packet is dropped
 	std::list<ReplicationCommand> mustSendCommands; 
+	std::list<WindowInfo> windowsInfo;
 };
 
 class DeliveryManager {

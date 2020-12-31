@@ -11,6 +11,19 @@ void ModuleNetworkingServer::setListenPort(int port)
 	listenPort = port;
 }
 
+const std::vector<GameObject*> ModuleNetworkingServer::GetAllConnectedPlayers() const
+{
+	std::vector<GameObject*> ret;
+
+	for (int i = 0; i < MAX_CLIENTS; ++i)
+	{
+		if (clientProxies[i].connected)
+			ret.push_back(clientProxies[i].gameObject);
+	}
+
+	return ret;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////

@@ -12,7 +12,7 @@ public:
 
 	void setListenPort(int port);
 
-
+	const std::vector<GameObject*> GetAllConnectedPlayers() const;
 
 private:
 

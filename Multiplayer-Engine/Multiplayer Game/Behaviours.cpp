@@ -164,14 +164,30 @@ void CowboyWindowManager::GameLoopUpdate() // server side
 {
 	switch (gameLoopState)
 	{
-	case GameState::none: 
-		// TODO: here we need to check if all clientproxies are ready first
-		gameLoopState = GameState::started; 
+	case GameState::none:
+	{
+		// obtain all connected players
+		std::vector<GameObject*> players = App->modNetServer->GetAllConnectedPlayers();
+
+		if (players.size() < 1) // we need at least 1 player to play
+			break;
+
+		for (int i = 0; i < players.size(); ++i)
+		{
+			PlayerCrosshair* pc = dynamic_cast<PlayerCrosshair*>(players[i]->behaviour);
+			if (!pc->ready)
+				return;
+		}
+
+		gameLoopState = GameState::started;
 		break;
+	}
 	case GameState::started:
+	{
 		SpawnLogic();
 		UpdateActiveWindows();
 		break;
+	}
 	default:
 		break;
 	}

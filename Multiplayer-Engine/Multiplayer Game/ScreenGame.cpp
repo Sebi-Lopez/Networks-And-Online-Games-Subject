@@ -79,7 +79,7 @@ void ScreenGame::gui()
 
 	std::vector<PlayerCrosshair*> players = App->modBehaviour->GetPlayersCrosshairs();
 	ImGui::Begin("Players info");
-	ImGui::Separator();
+	ImGui::Spacing();
 
 	// search myself on the behaviours
 	PlayerCrosshair* myself = nullptr;
@@ -92,11 +92,19 @@ void ScreenGame::gui()
 	if(myself != nullptr)
 		ImGui::Checkbox("im ready!", &dynamic_cast<PlayerCrosshair*>(myself)->ready);
 	
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Text("Score Board:");
+	ImGui::Separator();
+	ImGui::Spacing();
+
 	for (int i = 0; i < players.size(); ++i)
 	{
 		std::string readyStr = "- ready";
 		ImGui::Text("%s : %i %s", (PlayerCrosshair*)players[i]->playerName.c_str(), (PlayerCrosshair*)players[i]->score, 
 			(PlayerCrosshair*)players[i]->ready ? readyStr.c_str() : "");
+		ImGui::Separator();
+		ImGui::Spacing();
 	}
 
 	ImGui::End();

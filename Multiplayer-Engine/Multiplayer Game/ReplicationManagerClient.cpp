@@ -111,6 +111,7 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 	vec2 position;
 	float angle;
 	uint8 hitPoints;
+	int score = 0;
 
 	switch (type)
 	{
@@ -118,6 +119,7 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 		break;
 	case NetEntityType::Crosshair:
 	{
+		packet >> score;
 
 		packet >> position.x;
 		packet >> position.y;
@@ -148,6 +150,7 @@ void ReplicationManagerClient::UpdateObj(const InputMemoryStream& packet, const 
 		//packet >> ss->hitPoints;
 		
 		obj2U->position = position;
+		dynamic_cast<PlayerCrosshair*>(obj2U->behaviour)->score = score;
 
 		//packet >> obj2U->angle;
 

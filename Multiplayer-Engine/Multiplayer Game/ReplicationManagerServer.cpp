@@ -73,8 +73,7 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 			packet << type;
 			if (type == NetEntityType::Crosshair)
 			{
-				//Crosshair* ch = dynamic_cast<Crosshair*>(obj->behaviour);
-				//packet << ss->hitPoints;
+				packet << dynamic_cast<PlayerCrosshair*>(obj->behaviour)->score;
 			}
 
 			packet << obj->position.x;

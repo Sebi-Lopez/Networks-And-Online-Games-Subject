@@ -74,6 +74,8 @@ void ScreenGame::update()
 	}
 }
 
+bool comparePlayerCrosshairScore(PlayerCrosshair* a, PlayerCrosshair* b) { return (a->score > b->score); }
+
 void ScreenGame::gui()
 {
 
@@ -97,6 +99,8 @@ void ScreenGame::gui()
 	ImGui::Text("Score Board:");
 	ImGui::Separator();
 	ImGui::Spacing();
+
+	std::sort(players.begin(), players.end(), comparePlayerCrosshairScore);
 
 	for (int i = 0; i < players.size(); ++i)
 	{

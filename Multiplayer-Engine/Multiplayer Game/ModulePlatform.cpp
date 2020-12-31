@@ -2,8 +2,8 @@
 
 
 // Data
-const char *windowClassStr = "Networks and Online Games";
-const char *windowTitleStr = "Networks and Online Games";
+const char *windowClassStr = "Don't Shoot the Mexican";
+const char *windowTitleStr = "Don't Shoot the Mexican";
 HINSTANCE instance = NULL;                           // Application instance
 HWND hwnd = NULL;                                    // Window handle
 WNDCLASSEX windowClass = {};                         // Window class

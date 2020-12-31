@@ -21,8 +21,10 @@ public:
 	Texture *spacecraft3 = nullptr;
 	Texture *laser = nullptr;
 	Texture *explosion1 = nullptr;
+	Texture *blood = nullptr;
 
 	AnimationClip *explosionClip = nullptr;
+	AnimationClip *bloodSplash = nullptr;
 
 	AudioClip *audioClipLaser = nullptr;
 	AudioClip *audioClipExplosion = nullptr;

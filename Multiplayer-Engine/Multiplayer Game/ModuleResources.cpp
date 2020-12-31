@@ -37,6 +37,8 @@ bool ModuleResources::init()
 	loadTextureAsync("spacecraft3.png",      &spacecraft3);
 	loadTextureAsync("laser.png",            &laser);
 	loadTextureAsync("explosion1.png",       &explosion1);
+	loadTextureAsync("blood.png",			 &blood);
+
 #endif
 
 	audioClipLaser = App->modSound->loadAudioClip("laser.wav");
@@ -93,6 +95,18 @@ void ModuleResources::onTaskFinished(Task * task)
 			float w = 1.0f / 4.0f;
 			float h = 1.0f / 4.0f;
 			explosionClip->addFrameRect(vec4{ x, y, w, h });
+		}
+
+		bloodSplash = App->modRender->addAnimationClip();
+		bloodSplash->frameTime = 0.1f;
+		bloodSplash->loop = false;
+		for (int i = 0; i < 16; ++i)
+		{
+			float x = (i % 4) / 4.0f;
+			float y = (i / 4) / 4.0f;
+			float w = 1.0f / 4.0f;
+			float h = 1.0f / 4.0f;
+			bloodSplash->addFrameRect(vec4{ x, y, w, h });
 		}
 	}
 }

@@ -94,7 +94,7 @@ enum class ColliderType
 ////////////////////////////////////////////////////////////////////////
 enum class NetEntityType
 {
-	None, Crosshair, CowboyWindow, Shoot, MAX
+	None, Crosshair, CowboyWindow, Shoot, Blood, MAX
 };
 
 

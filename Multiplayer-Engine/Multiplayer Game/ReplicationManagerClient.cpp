@@ -266,6 +266,26 @@ void ReplicationManagerClient::CreateObj(const InputMemoryStream& packet, const 
 		particleShot->animation->clip = App->modResources->explosionClip;
 		break;
 	}
+
+	case NetEntityType::Blood:
+	{
+		GameObject* bloodSplash = Instantiate();
+		App->modLinkingContext->registerNetworkGameObjectWithNetworkId(bloodSplash, networkId);
+		bloodSplash->netType = NetEntityType::Blood;
+		packet >> bloodSplash->position.x;
+		packet >> bloodSplash->position.y;
+		//particleShot->angle = gameObject->angle;
+		bloodSplash->size = { 125, 125 };
+
+		bloodSplash->sprite = App->modRender->addSprite(bloodSplash);
+		bloodSplash->sprite->texture = App->modResources->blood;
+
+		bloodSplash->animation = App->modRender->addAnimation(bloodSplash);
+		bloodSplash->animation->clip = App->modResources->bloodSplash;
+
+		bloodSplash->sprite->order = 150;
+		break;
+	}
 	//case NetEntityType::Laser:
 	//{
 	//	GameObject* laser = App->modGameObject->Instantiate();

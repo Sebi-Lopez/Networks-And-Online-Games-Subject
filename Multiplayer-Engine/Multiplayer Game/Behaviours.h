@@ -100,7 +100,7 @@ struct CowboyWindow
 	float spawned_at = 0.0f; // store spawn time
 	float lifetime = 0.0f;
 
-	void Open();
+	void Open(EnemyType type = EnemyType::none);
 	void Close();
 	void Update();
 

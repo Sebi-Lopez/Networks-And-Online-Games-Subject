@@ -33,16 +33,18 @@ void ReplicationManagerClient::Read(const InputMemoryStream& packet)
 			WindowState wstate = WindowState::none;
 			uint32 hitNetId = 0;
 			int score = 0;
+			EnemyType enemyType;
 
 			packet >> type;
 			packet >> window_idx;
 			packet >> wstate;
+			packet >> enemyType;
 			packet >> hitNetId;
 			packet >> score;
 
 			CowboyWindowManager* winMan = dynamic_cast<CowboyWindowManager*>(App->modScreen->screenGame->windowManager->behaviour);
 			if (wstate == WindowState::open)
-				winMan->windows[window_idx].Open();
+				winMan->windows[window_idx].Open(enemyType);
 			else if (wstate == WindowState::closed)
 				winMan->windows[window_idx].Close();
 

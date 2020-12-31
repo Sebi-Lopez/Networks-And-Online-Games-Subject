@@ -449,7 +449,7 @@ void CowboyWindow::Update()
 		Close();
 }
 
-void CowboyWindow::Open()
+void CowboyWindow::Open(EnemyType type)
 {
 	hitByNetworkId = 0;
 	state = WindowState::open;
@@ -486,7 +486,12 @@ void CowboyWindow::Open()
 
 	currentEnemyType = EnemyType::none;
 	target->sprite->color = { 1.0f, 1.0f, 1.0f, 1.0f };
-	target->sprite->clipRect = GetRandomEnemy(currentEnemyType);
+	if (type != EnemyType::none) { // client calls with specific type
+		target->sprite->clipRect = winMan->targetsRects[(int)type].spawnRect;
+	}
+	else
+		target->sprite->clipRect = GetRandomEnemy(currentEnemyType); // server creates random ones
+
 	target->size = { target->sprite->clipRect.z, target->sprite->clipRect.w };
 	//target->sprite->pivot = { 0,0 };
 

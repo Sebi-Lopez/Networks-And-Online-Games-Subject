@@ -94,6 +94,7 @@ void ReplicationManagerServer::Write(OutputMemoryStream& packet, DeliveryManager
 
 			packet << cbw->window_id;
 			packet << cbw->state;
+			packet << cbw->currentEnemyType;
 			packet << cbw->hitByNetworkId;
 			packet << cbwm->enemyScores[(int)cbw->currentEnemyType];		
 

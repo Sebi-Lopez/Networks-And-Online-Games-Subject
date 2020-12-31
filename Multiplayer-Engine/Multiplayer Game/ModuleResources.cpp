@@ -16,12 +16,7 @@ bool ModuleResources::init()
 	background = App->modTextures->loadTexture("background.jpg");
 
 #if !defined(USE_TASK_MANAGER)
-	space = App->modTextures->loadTexture("space_background.jpg");
-	asteroid1 = App->modTextures->loadTexture("asteroid1.png");
-	asteroid2 = App->modTextures->loadTexture("asteroid2.png");
-	spacecraft1 = App->modTextures->loadTexture("spacecraft1.png");
-	spacecraft2 = App->modTextures->loadTexture("spacecraft2.png");
-	spacecraft3 = App->modTextures->loadTexture("spacecraft3.png");
+	
 	loadingFinished = true;
 	completionRatio = 1.0f;
 #else
@@ -29,15 +24,8 @@ bool ModuleResources::init()
 	loadTextureAsync("crosshairs_v01.png", &tex_crosshairs_ss);
 	loadTextureAsync("cowboywindow2.png", &tex_cowboy_window);
 	
-	//loadTextureAsync("sunsetr_background.png", &space);
-	loadTextureAsync("asteroid1.png",        &asteroid1);
-	loadTextureAsync("asteroid2.png",        &asteroid2);
-	loadTextureAsync("spacecraft1.png",      &spacecraft1);
-	loadTextureAsync("spacecraft2.png",      &spacecraft2);
-	loadTextureAsync("spacecraft3.png",      &spacecraft3);
-	loadTextureAsync("laser.png",            &laser);
 	loadTextureAsync("explosion1.png",       &explosion1);
-	loadTextureAsync("blood.png",			 &blood);
+	loadTextureAsync("blood.png", &blood);
 
 #endif
 
